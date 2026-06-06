@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+  file: index.html
+  Chuc nang: Trang dashboard chinh cua Terminal Control Center.
+  Hien thi danh sach phien tmux, cho phep tao/xoa/mo phien.
+-->
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminal Control Center</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <h1 class="header__title">Terminal Control Center</h1>
+    <div class="header__actions">
+      <button id="btn-refresh" class="btn btn--ghost btn--small" title="Làm mới">&#x21bb; Refresh</button>
+      <button id="btn-logout" class="btn btn--ghost btn--small hidden">Đăng xuất</button>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="container">
+
+    <!-- Thong bao loi chung -->
+    <div id="msg-global" class="message hidden"></div>
+
+    <!-- Form dang nhap (an mac dinh) -->
+    <div id="login-section" class="login-wrapper hidden">
+      <form id="login-form" class="login-form">
+        <h2 class="login-form__title">Đăng nhập</h2>
+        <div id="msg-login" class="message message--error hidden"></div>
+        <input id="input-password" class="input" type="password" placeholder="Mật khẩu" required>
+        <button type="submit" class="btn btn--primary">Đăng nhập</button>
+      </form>
+    </div>
+
+    <!-- Dashboard (an mac dinh) -->
+    <section id="dashboard-section" class="hidden">
+      <!-- Toolbar tao phien -->
+      <div class="toolbar">
+        <input id="input-session-name" class="input" type="text" placeholder="Tên phiên (tuỳ chọn)">
+        <button id="btn-create" class="btn btn--primary">+ Tạo phiên mới</button>
+      </div>
+
+      <!-- Danh sach phien -->
+      <div id="session-list" class="session-list"></div>
+    </section>
+
+  </main>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

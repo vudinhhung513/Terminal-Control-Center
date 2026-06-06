@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+  file: terminal.html
+  Chuc nang: Man hinh terminal ket noi WebSocket toi phien tmux.
+  Dung xterm.js + addon-fit de render terminal responsive.
+-->
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminal</title>
+  <link rel="stylesheet" href="vendor/xterm.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="terminal-page">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header__actions">
+      <a href="index.html" class="btn btn--ghost btn--small">← Quay lại</a>
+    </div>
+    <span id="session-title" class="header__title">Terminal</span>
+    <div></div>
+  </header>
+
+  <!-- Terminal container -->
+  <div id="terminal-container" class="terminal-container"></div>
+
+  <!-- Nut ket noi lai (an mac dinh) -->
+  <div id="reconnect-overlay" class="reconnect-overlay hidden">
+    <button id="btn-reconnect" class="btn btn--primary">Kết nối lại</button>
+  </div>
+
+  <script src="vendor/xterm.js"></script>
+  <script src="vendor/addon-fit.js"></script>
+  <script src="js/terminal.js"></script>
+</body>
+</html>

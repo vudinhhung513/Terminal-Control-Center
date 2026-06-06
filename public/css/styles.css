@@ -1,0 +1,309 @@
+/*
+ * file: styles.css
+ * Chuc nang: Style chinh cho Terminal Control Center.
+ * Dark theme, mobile-first, responsive. Khong phu thuoc framework ngoai.
+ */
+
+/* === Reset & Base === */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-primary: #1a1b2e;
+  --bg-secondary: #242640;
+  --bg-card: #2a2d4a;
+  --text-primary: #e4e4f0;
+  --text-secondary: #a0a0b8;
+  --accent: #6c63ff;
+  --accent-hover: #5a52e0;
+  --danger: #ff4d6a;
+  --danger-hover: #e0334f;
+  --success: #4cdf8b;
+  --border: #3a3d5c;
+  --header-height: 56px;
+  --radius: 8px;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* === Header (dinh tren cung) === */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.header__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* === Buttons === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  text-decoration: none;
+  color: #fff;
+}
+
+.btn:active {
+  opacity: 0.8;
+}
+
+.btn--primary {
+  background: var(--accent);
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn--danger {
+  background: var(--danger);
+}
+
+.btn--danger:hover {
+  background: var(--danger-hover);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.btn--ghost:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.btn--small {
+  min-height: 36px;
+  min-width: 36px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+/* === Form elements === */
+.input {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* === Layout containers === */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* === Login form === */
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--header-height));
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 360px;
+  padding: 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+}
+
+.login-form__title {
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* === Session list (dashboard) === */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.toolbar .input {
+  flex: 1;
+  min-width: 140px;
+}
+
+.session-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.session-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.session-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.session-card__name {
+  font-weight: 600;
+  font-size: 1rem;
+  word-break: break-all;
+}
+
+.session-card__meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.session-card__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* === Badges === */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge--attached {
+  background: var(--success);
+  color: #1a1b2e;
+}
+
+.badge--detached {
+  background: var(--border);
+  color: var(--text-secondary);
+}
+
+/* === Error / Message === */
+.message {
+  padding: 12px;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.message--error {
+  background: rgba(255, 77, 106, 0.15);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.message--info {
+  background: rgba(108, 99, 255, 0.15);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+/* === Terminal page layout === */
+.terminal-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.terminal-container {
+  flex: 1;
+  overflow: hidden;
+  padding: 4px;
+  background: #000;
+}
+
+.terminal-container .xterm {
+  height: 100%;
+}
+
+/* === Reconnect overlay === */
+.reconnect-overlay {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+
+/* === Responsive (desktop) === */
+@media (min-width: 640px) {
+  .session-list {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+
+  .header {
+    padding: 0 24px;
+  }
+
+  .container {
+    padding: 24px;
+  }
+}
+
+/* === Utility: an/hien === */
+.hidden {
+  display: none !important;
+}

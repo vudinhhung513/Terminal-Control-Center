@@ -1,0 +1,9 @@
+{
+  "host": "0.0.0.0",
+  "port": 7070,
+  "authEnabled": false,
+  "password": "",
+  "sessionSecret": "change-me-please-use-a-long-random-string",
+  "shell": "bash",
+  "tmuxPrefix": "tcc"
+}
