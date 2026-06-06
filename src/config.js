@@ -15,7 +15,7 @@ export const DEFAULTS = {
   port: 7070,
   authEnabled: false,
   password: '',
-  sessionSecret: 'change-me-please-use-a-long-random-string',
+  sessionSecret: 'REPLACE_WITH_RANDOM_SECRET',
   shell: 'bash',
   tmuxPrefix: 'tcc'
 };

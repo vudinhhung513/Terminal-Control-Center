@@ -39,7 +39,7 @@ Chỉnh sửa file `config.json` (được tạo từ `config.example.json`):
 | `port` | Cổng lắng nghe | `7070` |
 | `authEnabled` | Bật/tắt xác thực đăng nhập | `false` |
 | `password` | Mật khẩu đăng nhập (chỉ có tác dụng khi `authEnabled: true`) | `""` |
-| `sessionSecret` | Chuỗi bí mật dùng ký session cookie. **Phải đổi** trong production | `"change-me-..."` |
+| `sessionSecret` | Chuỗi bí mật dùng ký session cookie. **Phải đổi** trong production | `"REPLACE_WITH_RANDOM_SECRET"` |
 | `shell` | Shell mặc định cho phiên mới | `"bash"` |
 | `tmuxPrefix` | Tiền tố tên phiên tmux do TCC quản lý | `"tcc"` |
 
