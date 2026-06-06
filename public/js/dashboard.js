@@ -1,7 +1,8 @@
 /**
  * file: dashboard.js
  * Chuc nang: Logic trang dashboard — xac thuc, hien thi danh sach phien,
- *            tao/xoa phien, tu dong refresh.
+ *            tao/xoa/doi ten/ghi chu phien, keo-tha sap xep, cai dat (settings),
+ *            tu dong refresh. Gui CSRF token theo moi request doi trang thai.
  */
 
 (function () {
@@ -16,59 +17,73 @@
   var inputPassword = document.getElementById('input-password');
   var btnLogout = document.getElementById('btn-logout');
   var btnRefresh = document.getElementById('btn-refresh');
+  var btnSettings = document.getElementById('btn-settings');
   var btnCreate = document.getElementById('btn-create');
   var inputSessionName = document.getElementById('input-session-name');
   var sessionListEl = document.getElementById('session-list');
+  var appVersionEl = document.getElementById('app-version');
+
+  // Settings modal
+  var settingsModal = document.getElementById('settings-modal');
+  var settingsForm = document.getElementById('settings-form');
+  var msgSettings = document.getElementById('msg-settings');
+  var btnSettingsClose = document.getElementById('btn-settings-close');
+  var btnSettingsCancel = document.getElementById('btn-settings-cancel');
+  var settingsBackdrop = document.getElementById('settings-backdrop');
+  var settingsConfirmGroup = document.getElementById('settings-confirm-group');
 
   // === Trang thai ===
   var authEnabled = false;
   var refreshTimer = null;
 
-  // === Helpers ===
+  // === CSRF helper ===
 
-  /** Hien thi thong bao loi/info toan cuc */
+  /** Shorthand dich i18n. */
+  function t(key, vars) { return window.I18N.t(key, vars); }
+
+  /** Doc CSRF token tu cookie (do auth plugin set, httpOnly=false). */
+  function getCsrfToken() {
+    var match = document.cookie.match(/(?:^|;\s*)tcc_csrf=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  /** Tao headers JSON kem CSRF token cho request doi trang thai. */
+  function mutHeaders() {
+    return { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() };
+  }
+
+  // === Helpers UI ===
+
   function showGlobalMsg(text, type) {
     msgGlobal.textContent = text;
     msgGlobal.className = 'message message--' + (type || 'error');
     msgGlobal.classList.remove('hidden');
   }
+  function hideGlobalMsg() { msgGlobal.classList.add('hidden'); }
+  function showLoginError(text) { msgLogin.textContent = text; msgLogin.classList.remove('hidden'); }
+  function hideLoginError() { msgLogin.classList.add('hidden'); }
 
-  /** An thong bao toan cuc */
-  function hideGlobalMsg() {
-    msgGlobal.classList.add('hidden');
-  }
-
-  /** Hien thi loi form dang nhap */
-  function showLoginError(text) {
-    msgLogin.textContent = text;
-    msgLogin.classList.remove('hidden');
-  }
-
-  /** An loi form dang nhap */
-  function hideLoginError() {
-    msgLogin.classList.add('hidden');
-  }
-
-  /** Format unix timestamp (giay) sang chuoi local */
+  /** Format unix timestamp (giay) sang chuoi local. */
   function formatTime(unixSeconds) {
     if (!unixSeconds) return '—';
-    var d = new Date(unixSeconds * 1000);
-    return d.toLocaleString();
+    return new Date(unixSeconds * 1000).toLocaleString();
+  }
+
+  /** Format epoch ms (lastAccess) sang chuoi local. */
+  function formatMs(ms) {
+    if (!ms) return t('card.neverAccessed');
+    return new Date(ms).toLocaleString();
   }
 
   // === API calls ===
 
-  /** Lay cau hinh server */
   function fetchConfig() {
-    return fetch('/api/config')
-      .then(function (res) { return res.json(); });
+    return fetch('/api/config').then(function (res) { return res.json(); });
   }
 
-  /** Dang nhap */
   function doLogin(password) {
     return fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: mutHeaders(),
       body: JSON.stringify({ password: password })
     }).then(function (res) {
       if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
@@ -76,59 +91,107 @@
     });
   }
 
-  /** Dang xuat */
   function doLogout() {
-    return fetch('/api/logout', { method: 'POST' })
+    return fetch('/api/logout', { method: 'POST', headers: mutHeaders() })
       .then(function (res) { return res.json(); });
   }
 
-  /** Lay danh sach phien */
   function fetchSessions() {
-    return fetch('/api/sessions')
-      .then(function (res) {
-        if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
-        return res.json();
-      });
+    return fetch('/api/sessions').then(function (res) {
+      if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
+      return res.json();
+    });
   }
 
-  /** Tao phien moi */
   function createSession(name) {
     var body = {};
     if (name) body.name = name;
     return fetch('/api/sessions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      method: 'POST', headers: mutHeaders(), body: JSON.stringify(body)
     }).then(function (res) {
       if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
       return res.json();
     });
   }
 
-  /** Xoa phien */
   function deleteSession(name) {
     return fetch('/api/sessions/' + encodeURIComponent(name), {
-      method: 'DELETE'
+      method: 'DELETE', headers: mutHeaders()
     }).then(function (res) {
       if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
       return res.json();
     });
   }
 
-  // === Render ===
+  function touchSession(name) {
+    // keepalive: request song sot qua dieu huong trang (nut "Mo" la <a> dieu
+    // huong ngay), tranh bi huy giua chung khien lastAccess khong duoc ghi.
+    return fetch('/api/sessions/' + encodeURIComponent(name) + '/touch', {
+      method: 'POST', headers: mutHeaders(), keepalive: true
+    });
+  }
 
-  /** Render danh sach phien ra DOM */
+  function saveNote(name, note) {
+    return fetch('/api/sessions/' + encodeURIComponent(name) + '/note', {
+      method: 'PUT', headers: mutHeaders(), body: JSON.stringify({ note: note })
+    }).then(function (res) {
+      if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
+      return res.json();
+    });
+  }
+
+  function renameSessionApi(name, newName) {
+    return fetch('/api/sessions/' + encodeURIComponent(name) + '/rename', {
+      method: 'PUT', headers: mutHeaders(), body: JSON.stringify({ newName: newName })
+    }).then(function (res) {
+      if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
+      return res.json();
+    });
+  }
+
+  function saveOrder(orderedNames) {
+    return fetch('/api/sessions/order', {
+      method: 'PUT', headers: mutHeaders(), body: JSON.stringify({ order: orderedNames })
+    });
+  }
+
+  function fetchSettings() {
+    return fetch('/api/settings').then(function (res) {
+      if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
+      return res.json();
+    });
+  }
+
+  function saveSettings(payload) {
+    return fetch('/api/settings', {
+      method: 'PUT', headers: mutHeaders(), body: JSON.stringify(payload)
+    }).then(function (res) {
+      if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
+      return res.json();
+    });
+  }
+
+  // === Render danh sach phien ===
+
   function renderSessions(sessions) {
     sessionListEl.innerHTML = '';
 
     if (!sessions || sessions.length === 0) {
-      sessionListEl.innerHTML = '<p style="color:var(--text-secondary)">Chưa có phiên nào. Tạo phiên mới để bắt đầu.</p>';
+      sessionListEl.innerHTML = '<p style="color:var(--text-secondary)">' + t('card.empty') + '</p>';
       return;
     }
 
     sessions.forEach(function (s) {
       var card = document.createElement('div');
       card.className = 'session-card';
+      card.setAttribute('draggable', 'true');
+      card.dataset.name = s.name;
+
+      // Tay cam keo-tha
+      var handle = document.createElement('div');
+      handle.className = 'session-card__handle';
+      handle.textContent = '⠿';
+      handle.title = t('card.dragHint');
 
       // Thong tin phien
       var info = document.createElement('div');
@@ -140,16 +203,40 @@
 
       var meta = document.createElement('div');
       meta.className = 'session-card__meta';
-      meta.textContent = 'Tạo: ' + formatTime(s.created) + ' · Cửa sổ: ' + (s.windows || 0) + ' ';
+      meta.textContent = t('card.created') + formatTime(s.created) + t('card.windows') + (s.windows || 0) + ' ';
 
-      // Badge trang thai
       var badge = document.createElement('span');
       badge.className = 'badge ' + (s.attached ? 'badge--attached' : 'badge--detached');
-      badge.textContent = s.attached ? 'Attached' : 'Detached';
+      badge.textContent = s.attached ? t('card.attached') : t('card.detached');
       meta.appendChild(badge);
+
+      // Lan truy cap cuoi
+      var lastEl = document.createElement('div');
+      lastEl.className = 'session-card__meta';
+      lastEl.textContent = t('card.lastAccess') + formatMs(s.lastAccess);
+
+      // Ghi chu (input chinh sua truc tiep)
+      var noteWrap = document.createElement('div');
+      noteWrap.className = 'session-card__note';
+      var noteInput = document.createElement('input');
+      noteInput.className = 'input input--note';
+      noteInput.type = 'text';
+      noteInput.placeholder = t('card.notePlaceholder');
+      noteInput.value = s.note || '';
+      noteInput.maxLength = 500;
+      // Luu ghi chu khi roi focus neu co thay doi
+      noteInput.addEventListener('blur', function () {
+        if (noteInput.value === (s.note || '')) return;
+        saveNote(s.name, noteInput.value)
+          .then(function () { s.note = noteInput.value; })
+          .catch(function (err) { showGlobalMsg(t('msg.noteFail') + (err.error || ''), 'error'); });
+      });
+      noteWrap.appendChild(noteInput);
 
       info.appendChild(nameEl);
       info.appendChild(meta);
+      info.appendChild(lastEl);
+      info.appendChild(noteWrap);
 
       // Cac nut hanh dong
       var actions = document.createElement('div');
@@ -157,151 +244,246 @@
 
       var btnOpen = document.createElement('a');
       btnOpen.className = 'btn btn--primary btn--small';
-      btnOpen.textContent = 'Mở';
+      btnOpen.textContent = t('card.open');
       btnOpen.href = 'terminal.html?name=' + encodeURIComponent(s.name);
+      // Danh dau lan truy cap khi mo
+      btnOpen.addEventListener('click', function () { touchSession(s.name); });
+
+      var btnRename = document.createElement('button');
+      btnRename.className = 'btn btn--ghost btn--small';
+      btnRename.textContent = t('card.rename');
+      btnRename.addEventListener('click', function () { handleRename(s.name); });
 
       var btnKill = document.createElement('button');
       btnKill.className = 'btn btn--danger btn--small';
-      btnKill.textContent = 'Kill';
-      btnKill.addEventListener('click', function () {
-        handleKill(s.name);
-      });
+      btnKill.textContent = t('card.kill');
+      btnKill.addEventListener('click', function () { handleKill(s.name); });
 
       actions.appendChild(btnOpen);
+      actions.appendChild(btnRename);
       actions.appendChild(btnKill);
 
+      card.appendChild(handle);
       card.appendChild(info);
       card.appendChild(actions);
+
+      attachDragHandlers(card);
       sessionListEl.appendChild(card);
     });
   }
 
+  // === Keo-tha sap xep ===
+
+  function attachDragHandlers(card) {
+    card.addEventListener('dragstart', function () {
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', function () {
+      card.classList.remove('dragging');
+      persistOrder();
+    });
+    card.addEventListener('dragover', function (e) {
+      e.preventDefault(); // cho phep drop
+      var dragging = sessionListEl.querySelector('.dragging');
+      if (!dragging || dragging === card) return;
+      // Chen truoc/sau tuy vi tri con tro
+      var rect = card.getBoundingClientRect();
+      var after = e.clientY > rect.top + rect.height / 2;
+      sessionListEl.insertBefore(dragging, after ? card.nextSibling : card);
+    });
+  }
+
+  /** Luu thu tu hien tai cua DOM xuong server. */
+  function persistOrder() {
+    var names = Array.prototype.map.call(
+      sessionListEl.querySelectorAll('.session-card'),
+      function (c) { return c.dataset.name; }
+    );
+    if (names.length) saveOrder(names);
+  }
+
   // === Handlers ===
 
-  /** Xu ly xoa phien (xac nhan truoc) */
   function handleKill(name) {
-    var confirmed = confirm('Bạn có chắc muốn xoá phiên "' + name + '"?');
-    if (!confirmed) return;
-
+    if (!confirm(t('msg.killConfirm', { name: name }))) return;
     deleteSession(name)
-      .then(function () {
-        loadSessions();
-      })
+      .then(loadSessions)
       .catch(function (err) {
-        showGlobalMsg('Không thể xoá phiên: ' + (err.error || 'Lỗi không xác định'), 'error');
+        showGlobalMsg(t('msg.killFail') + (err.error || t('msg.unknownError')), 'error');
       });
   }
 
-  /** Load va render danh sach phien */
+  function handleRename(name) {
+    var newName = prompt(t('msg.renamePrompt', { name: name }), name);
+    if (!newName || newName === name) return;
+    renameSessionApi(name, newName)
+      .then(loadSessions)
+      .catch(function (err) {
+        showGlobalMsg(t('msg.renameFail') + (err.error || t('msg.unknownError')), 'error');
+      });
+  }
+
   function loadSessions() {
     hideGlobalMsg();
     fetchSessions()
-      .then(function (data) {
-        renderSessions(data.sessions || []);
-      })
+      .then(function (data) { renderSessions(data.sessions || []); })
       .catch(function (err) {
-        showGlobalMsg('Không thể tải danh sách phiên: ' + (err.error || 'Lỗi kết nối'), 'error');
+        showGlobalMsg(t('msg.loadSessionsFail') + (err.error || t('msg.connError')), 'error');
       });
   }
 
-  /** Hien dashboard, bat dau auto-refresh */
   function showDashboard() {
     loginSection.classList.add('hidden');
     dashboardSection.classList.remove('hidden');
-    if (authEnabled) {
-      btnLogout.classList.remove('hidden');
-    }
+    btnSettings.classList.remove('hidden');
+    if (authEnabled) btnLogout.classList.remove('hidden');
     loadSessions();
     startAutoRefresh();
   }
 
-  /** Hien form dang nhap */
   function showLogin() {
     dashboardSection.classList.add('hidden');
     loginSection.classList.remove('hidden');
     btnLogout.classList.add('hidden');
+    btnSettings.classList.add('hidden');
     stopAutoRefresh();
   }
 
-  /** Bat auto refresh moi 5 giay */
   function startAutoRefresh() {
     stopAutoRefresh();
     refreshTimer = setInterval(loadSessions, 5000);
   }
-
-  /** Dung auto refresh */
   function stopAutoRefresh() {
-    if (refreshTimer) {
-      clearInterval(refreshTimer);
-      refreshTimer = null;
-    }
+    if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+  }
+
+  // === Settings modal ===
+
+  function showSettingsMsg(text, type) {
+    msgSettings.textContent = text;
+    msgSettings.className = 'message message--' + (type || 'info');
+    msgSettings.classList.remove('hidden');
+  }
+  function hideSettingsMsg() { msgSettings.classList.add('hidden'); }
+
+  function openSettings() {
+    hideSettingsMsg();
+    fetchSettings()
+      .then(function (cfg) {
+        document.getElementById('set-auth-enabled').checked = cfg.authEnabled;
+        document.getElementById('set-password').value = '';
+        document.getElementById('set-host').value = cfg.host;
+        document.getElementById('set-port').value = cfg.port;
+        document.getElementById('set-font-family').value = cfg.termFontFamily;
+        document.getElementById('set-font-size').value = cfg.termFontSize;
+        document.getElementById('set-encoding').value = cfg.termEncoding || 'utf-8';
+        document.getElementById('set-language').value = cfg.language || 'en';
+        document.getElementById('set-rl-enabled').checked = cfg.loginRateLimit.enabled;
+        document.getElementById('set-rl-max').value = cfg.loginRateLimit.maxAttempts;
+        document.getElementById('set-rl-window').value = Math.round(cfg.loginRateLimit.windowMs / 1000);
+        // Hien o xac nhan mat khau hien tai neu auth dang bat
+        settingsConfirmGroup.classList.toggle('hidden', !authEnabled);
+        settingsModal.classList.remove('hidden');
+      })
+      .catch(function (err) {
+        showGlobalMsg(t('msg.loadSettingsFail') + (err.error || ''), 'error');
+      });
+  }
+
+  function closeSettings() { settingsModal.classList.add('hidden'); }
+
+  function submitSettings(e) {
+    e.preventDefault();
+    hideSettingsMsg();
+
+    var payload = {
+      authEnabled: document.getElementById('set-auth-enabled').checked,
+      host: document.getElementById('set-host').value.trim(),
+      port: Number(document.getElementById('set-port').value),
+      termFontFamily: document.getElementById('set-font-family').value.trim(),
+      termFontSize: Number(document.getElementById('set-font-size').value),
+      termEncoding: document.getElementById('set-encoding').value,
+      language: document.getElementById('set-language').value,
+      loginRateLimit: {
+        enabled: document.getElementById('set-rl-enabled').checked,
+        maxAttempts: Number(document.getElementById('set-rl-max').value),
+        windowMs: Number(document.getElementById('set-rl-window').value) * 1000
+      }
+    };
+    var newPw = document.getElementById('set-password').value;
+    if (newPw) payload.password = newPw;
+    var curPw = document.getElementById('set-current-password').value;
+    if (curPw) payload.currentPassword = curPw;
+
+    saveSettings(payload)
+      .then(function (res) {
+        // Ap ngon ngu moi ngay lap tuc (re-render UI tinh + danh sach phien)
+        window.I18N.setLang(payload.language);
+        window.I18N.apply();
+        loadSessions();
+        showSettingsMsg(res.message || t('settings.saved'), 'info');
+        // Cap nhat trang thai auth cuc bo
+        authEnabled = payload.authEnabled;
+        if (!res.needsRestart) {
+          setTimeout(closeSettings, 1200);
+        }
+      })
+      .catch(function (err) {
+        showSettingsMsg(t('msg.saveSettingsFail') + (err.error || t('msg.unknownError')), 'error');
+      });
   }
 
   // === Khoi tao ===
 
-  /** Kiem tra config va quyet dinh hien login hay dashboard */
   function init() {
     fetchConfig()
       .then(function (cfg) {
         authEnabled = cfg.authEnabled;
-        if (authEnabled && !cfg.authed) {
-          showLogin();
-        } else {
-          showDashboard();
-        }
+        // Ap ngon ngu truoc khi hien UI
+        window.I18N.setLang(cfg.language || 'en');
+        window.I18N.apply();
+        if (cfg.version && appVersionEl) appVersionEl.textContent = 'v' + cfg.version;
+        if (authEnabled && !cfg.authed) showLogin();
+        else showDashboard();
       })
       .catch(function () {
-        showGlobalMsg('Không thể kết nối tới server.', 'error');
+        showGlobalMsg(t('msg.connectFail'), 'error');
       });
   }
 
   // === Event listeners ===
 
-  // Dang nhap
   loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
     hideLoginError();
     var pw = inputPassword.value;
-    if (!pw) {
-      showLoginError('Vui lòng nhập mật khẩu.');
-      return;
-    }
+    if (!pw) { showLoginError(t('login.needPassword')); return; }
     doLogin(pw)
-      .then(function () {
-        inputPassword.value = '';
-        showDashboard();
-      })
-      .catch(function (err) {
-        showLoginError(err.error || 'Sai mật khẩu.');
-      });
+      .then(function () { inputPassword.value = ''; showDashboard(); })
+      .catch(function (err) { showLoginError(err.error || t('login.wrong')); });
   });
 
-  // Dang xuat
   btnLogout.addEventListener('click', function () {
-    doLogout().then(function () {
-      showLogin();
-    });
+    doLogout().then(showLogin);
   });
 
-  // Refresh thu cong
-  btnRefresh.addEventListener('click', function () {
-    loadSessions();
-  });
+  btnRefresh.addEventListener('click', loadSessions);
 
-  // Tao phien moi
   btnCreate.addEventListener('click', function () {
     hideGlobalMsg();
     var name = inputSessionName.value.trim();
     createSession(name)
-      .then(function () {
-        inputSessionName.value = '';
-        loadSessions();
-      })
+      .then(function () { inputSessionName.value = ''; loadSessions(); })
       .catch(function (err) {
-        showGlobalMsg('Lỗi tạo phiên: ' + (err.error || 'Không xác định'), 'error');
+        showGlobalMsg(t('msg.createFail') + (err.error || t('msg.unknownError')), 'error');
       });
   });
 
-  // Khoi chay
+  btnSettings.addEventListener('click', openSettings);
+  btnSettingsClose.addEventListener('click', closeSettings);
+  btnSettingsCancel.addEventListener('click', closeSettings);
+  settingsBackdrop.addEventListener('click', closeSettings);
+  settingsForm.addEventListener('submit', submitSettings);
+
   init();
 })();

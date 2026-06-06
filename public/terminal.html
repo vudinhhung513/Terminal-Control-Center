@@ -3,8 +3,9 @@
   file: terminal.html
   Chuc nang: Man hinh terminal ket noi WebSocket toi phien tmux.
   Dung xterm.js + addon-fit de render terminal responsive.
+  Text mac dinh tieng Anh; i18n.js dich sang VI khi config.language='vi'.
 -->
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +18,7 @@
   <!-- Header -->
   <header class="header">
     <div class="header__actions">
-      <a href="index.html" class="btn btn--ghost btn--small">← Quay lại</a>
+      <a href="index.html" class="btn btn--ghost btn--small" data-i18n="term.back">← Back</a>
     </div>
     <span id="session-title" class="header__title">Terminal</span>
     <div></div>
@@ -26,13 +27,30 @@
   <!-- Terminal container -->
   <div id="terminal-container" class="terminal-container"></div>
 
+  <!-- Thanh nut dieu khien (huu ich cho mobile / khong co phim cung) -->
+  <div id="control-bar" class="control-bar">
+    <button class="ctrl-btn" data-key="enter" data-i18n-title="ctrl.enter" title="Enter">⏎</button>
+    <button class="ctrl-btn" data-key="esc" data-i18n-title="ctrl.esc" title="ESC">ESC</button>
+    <button class="ctrl-btn" data-key="ctrlc" data-i18n-title="ctrl.ctrlc" title="Ctrl+C">^C</button>
+    <button class="ctrl-btn" data-key="tab" data-i18n-title="ctrl.tab" title="Tab">⇥</button>
+    <span class="control-bar__sep"></span>
+    <button class="ctrl-btn" data-key="left" data-i18n-title="ctrl.left" title="Left">←</button>
+    <button class="ctrl-btn" data-key="right" data-i18n-title="ctrl.right" title="Right">→</button>
+    <span class="control-bar__sep"></span>
+    <button class="ctrl-btn" data-scroll="up" data-i18n-title="ctrl.scrollUp" title="Scroll up">▲</button>
+    <button class="ctrl-btn" data-scroll="down" data-i18n-title="ctrl.scrollDown" title="Scroll down">▼</button>
+    <button class="ctrl-btn" data-scroll="top" data-i18n-title="ctrl.scrollTop" title="To top">⤒</button>
+    <button class="ctrl-btn" data-scroll="bottom" data-i18n-title="ctrl.scrollBottom" title="To bottom">⤓</button>
+  </div>
+
   <!-- Nut ket noi lai (an mac dinh) -->
   <div id="reconnect-overlay" class="reconnect-overlay hidden">
-    <button id="btn-reconnect" class="btn btn--primary">Kết nối lại</button>
+    <button id="btn-reconnect" class="btn btn--primary" data-i18n="term.reconnect">Reconnect</button>
   </div>
 
   <script src="vendor/xterm.js"></script>
   <script src="vendor/addon-fit.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/terminal.js"></script>
 </body>
 </html>

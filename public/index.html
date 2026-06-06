@@ -3,8 +3,9 @@
   file: index.html
   Chuc nang: Trang dashboard chinh cua Terminal Control Center.
   Hien thi danh sach phien tmux, cho phep tao/xoa/mo phien.
+  Text mac dinh tieng Anh; i18n.js dich sang VI khi config.language='vi'.
 -->
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,10 +16,11 @@
 
   <!-- Header -->
   <header class="header">
-    <h1 class="header__title">Terminal Control Center</h1>
+    <h1 class="header__title"><span data-i18n="app.title">Terminal Control Center</span> <span id="app-version" class="app-version"></span></h1>
     <div class="header__actions">
-      <button id="btn-refresh" class="btn btn--ghost btn--small" title="Làm mới">&#x21bb; Refresh</button>
-      <button id="btn-logout" class="btn btn--ghost btn--small hidden">Đăng xuất</button>
+      <button id="btn-refresh" class="btn btn--ghost btn--small" data-i18n="btn.refresh" data-i18n-title="btn.refresh">&#x21bb; Refresh</button>
+      <button id="btn-settings" class="btn btn--ghost btn--small hidden" data-i18n="btn.settings" data-i18n-title="btn.settings">&#9881; Settings</button>
+      <button id="btn-logout" class="btn btn--ghost btn--small hidden" data-i18n="btn.logout">Log out</button>
     </div>
   </header>
 
@@ -31,10 +33,10 @@
     <!-- Form dang nhap (an mac dinh) -->
     <div id="login-section" class="login-wrapper hidden">
       <form id="login-form" class="login-form">
-        <h2 class="login-form__title">Đăng nhập</h2>
+        <h2 class="login-form__title" data-i18n="login.title">Log in</h2>
         <div id="msg-login" class="message message--error hidden"></div>
-        <input id="input-password" class="input" type="password" placeholder="Mật khẩu" required>
-        <button type="submit" class="btn btn--primary">Đăng nhập</button>
+        <input id="input-password" class="input" type="password" data-i18n-placeholder="login.password" placeholder="Password" required>
+        <button type="submit" class="btn btn--primary" data-i18n="login.submit">Log in</button>
       </form>
     </div>
 
@@ -42,8 +44,8 @@
     <section id="dashboard-section" class="hidden">
       <!-- Toolbar tao phien -->
       <div class="toolbar">
-        <input id="input-session-name" class="input" type="text" placeholder="Tên phiên (tuỳ chọn)">
-        <button id="btn-create" class="btn btn--primary">+ Tạo phiên mới</button>
+        <input id="input-session-name" class="input" type="text" data-i18n-placeholder="toolbar.sessionName" placeholder="Session name (optional)">
+        <button id="btn-create" class="btn btn--primary" data-i18n="toolbar.create">+ New session</button>
       </div>
 
       <!-- Danh sach phien -->
@@ -52,6 +54,125 @@
 
   </main>
 
+  <!-- Modal Settings (an mac dinh) -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal__backdrop" id="settings-backdrop"></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="modal__header">
+        <h2 id="settings-title" class="modal__title" data-i18n="settings.title">Settings</h2>
+        <button id="btn-settings-close" class="btn btn--ghost btn--small" data-i18n-title="settings.close" aria-label="Close">&times;</button>
+      </div>
+
+      <div id="msg-settings" class="message hidden"></div>
+
+      <form id="settings-form" class="settings-form">
+        <!-- Nhom: Bao mat / xac thuc -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.authLegend">Authentication</legend>
+          <label class="settings-row">
+            <input id="set-auth-enabled" type="checkbox">
+            <span data-i18n="settings.authEnabled">Require password to access</span>
+          </label>
+          <label class="settings-field">
+            <span><span data-i18n="settings.newPassword">New password</span> <small data-i18n="settings.newPasswordHint">(leave blank to keep)</small></span>
+            <input id="set-password" class="input" type="password" autocomplete="new-password" placeholder="••••••••">
+          </label>
+        </fieldset>
+
+        <!-- Nhom: Mang -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.netLegend">Network (requires restart)</legend>
+          <label class="settings-field">
+            <span data-i18n="settings.host">Host</span>
+            <input id="set-host" class="input" type="text" placeholder="0.0.0.0">
+          </label>
+          <label class="settings-field">
+            <span data-i18n="settings.port">Port</span>
+            <input id="set-port" class="input" type="number" min="1" max="65535" placeholder="7171">
+          </label>
+        </fieldset>
+
+        <!-- Nhom: Terminal / font -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.fontLegend">Terminal font</legend>
+          <label class="settings-field">
+            <span data-i18n="settings.fontFamily">Font family</span>
+            <input id="set-font-family" class="input" type="text" placeholder="monospace">
+          </label>
+          <label class="settings-field">
+            <span data-i18n="settings.fontSize">Font size (8–40)</span>
+            <input id="set-font-size" class="input" type="number" min="8" max="40" placeholder="14">
+          </label>
+        </fieldset>
+
+        <!-- Nhom: Bang ma (encoding) -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.encodingLegend">Encoding</legend>
+          <label class="settings-field">
+            <span><span data-i18n="settings.encoding">Character encoding</span> <small data-i18n="settings.encodingHint">(reopen terminal after change)</small></span>
+            <select id="set-encoding" class="input">
+              <option value="utf-8">UTF-8 (default)</option>
+              <option value="gbk">GBK (Simplified Chinese)</option>
+              <option value="gb2312">GB2312 (Simplified Chinese)</option>
+              <option value="big5">Big5 (Traditional Chinese)</option>
+              <option value="euc-kr">EUC-KR (Korean)</option>
+              <option value="shift_jis">Shift_JIS (Japanese)</option>
+              <option value="euc-jp">EUC-JP (Japanese)</option>
+              <option value="tis-620">TIS-620 (Thai)</option>
+              <option value="windows-1251">Windows-1251 (Cyrillic)</option>
+              <option value="windows-1252">Windows-1252 (Western)</option>
+              <option value="iso-8859-1">ISO-8859-1 (Latin-1)</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <!-- Nhom: Rate-limit dang nhap -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.rlLegend">Login brute-force protection</legend>
+          <label class="settings-row">
+            <input id="set-rl-enabled" type="checkbox">
+            <span data-i18n="settings.rlEnabled">Enable attempt limit</span>
+          </label>
+          <label class="settings-field">
+            <span data-i18n="settings.rlMax">Max attempts</span>
+            <input id="set-rl-max" class="input" type="number" min="1" placeholder="5">
+          </label>
+          <label class="settings-field">
+            <span data-i18n="settings.rlWindow">Within window (seconds)</span>
+            <input id="set-rl-window" class="input" type="number" min="1" placeholder="60">
+          </label>
+        </fieldset>
+
+        <!-- Nhom: Ngon ngu -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.langLegend">Language</legend>
+          <label class="settings-field">
+            <span data-i18n="settings.language">Interface language</span>
+            <select id="set-language" class="input">
+              <option value="en">English</option>
+              <option value="vi">Tiếng Việt</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <!-- Nhom: Xac nhan mat khau hien tai (chi hien khi auth bat) -->
+        <fieldset id="settings-confirm-group" class="settings-group hidden">
+          <legend data-i18n="settings.confirmLegend">Confirm</legend>
+          <label class="settings-field">
+            <span><span data-i18n="settings.currentPassword">Current password</span> <small data-i18n="settings.currentPasswordHint">(required for sensitive changes)</small></span>
+            <input id="set-current-password" class="input" type="password" autocomplete="current-password">
+          </label>
+        </fieldset>
+
+        <div class="modal__footer">
+          <button type="button" id="btn-settings-cancel" class="btn btn--ghost" data-i18n="settings.cancel">Cancel</button>
+          <button type="submit" class="btn btn--primary" data-i18n="settings.save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/i18n.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
 </html>

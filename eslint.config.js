@@ -42,6 +42,7 @@ export default [
         URLSearchParams: 'readonly',
         confirm: 'readonly',
         alert: 'readonly',
+        prompt: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         setInterval: 'readonly',

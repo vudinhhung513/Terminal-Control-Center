@@ -54,7 +54,8 @@ Type=simple
 User=${RUN_USER}
 WorkingDirectory=${APP_DIR}
 ExecStart=${NODE_BIN} ${APP_DIR}/src/server.js
-Restart=on-failure
+Restart=always
+RestartSec=1
 Environment=NODE_ENV=production
 
 [Install]

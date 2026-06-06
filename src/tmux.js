@@ -90,6 +90,61 @@ export async function killSession(name) {
 }
 
 /**
+ * Doi ten phien tmux.
+ * @param {string} oldName
+ * @param {string} newName
+ */
+export async function renameSession(oldName, newName) {
+  if (!validateName(oldName) || !validateName(newName)) {
+    throw new Error('Invalid session name');
+  }
+  await execFileAsync('tmux', ['rename-session', '-t', oldName, newName]);
+}
+
+// So dong cuon moi lan bam nut (cuon tung phan cho de kiem soat)
+const SCROLL_LINES = '5';
+
+/**
+ * Cuon noi dung phien tmux qua copy-mode (cuon xterm client-side khong dung
+ * duoc vi tmux chiem alternate-screen). Hanh dong tac dong len pane, client
+ * dang attach se thay thay doi truc tiep.
+ * @param {string} name
+ * @param {'up'|'down'|'top'|'bottom'} action
+ */
+export async function scrollSession(name, action) {
+  if (!validateName(name)) {
+    throw new Error(`Invalid session name: ${name}`);
+  }
+
+  switch (action) {
+    case 'up':
+      // Vao copy-mode (no-op neu da o trong) roi cuon len
+      await execFileAsync('tmux', ['copy-mode', '-t', name]);
+      await execFileAsync('tmux', ['send-keys', '-t', name, '-X', '-N', SCROLL_LINES, 'scroll-up']);
+      break;
+    case 'down':
+      await execFileAsync('tmux', ['copy-mode', '-t', name]);
+      await execFileAsync('tmux', ['send-keys', '-t', name, '-X', '-N', SCROLL_LINES, 'scroll-down']);
+      break;
+    case 'top':
+      // Len dau lich su
+      await execFileAsync('tmux', ['copy-mode', '-t', name]);
+      await execFileAsync('tmux', ['send-keys', '-t', name, '-X', 'history-top']);
+      break;
+    case 'bottom':
+      // Thoat copy-mode -> ve live view (cuoi cung). Bo qua loi neu chua o trong mode.
+      try {
+        await execFileAsync('tmux', ['send-keys', '-t', name, '-X', 'cancel']);
+      } catch {
+        // Khong o trong copy-mode -> da o cuoi roi
+      }
+      break;
+    default:
+      throw new Error(`Invalid scroll action: ${action}`);
+  }
+}
+
+/**
  * Kiem tra phien tmux co ton tai khong.
  * @param {string} name
  * @returns {Promise<boolean>}

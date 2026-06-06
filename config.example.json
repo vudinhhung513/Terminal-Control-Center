@@ -1,9 +1,18 @@
 {
   "host": "0.0.0.0",
-  "port": 7070,
+  "port": 7171,
   "authEnabled": false,
   "password": "",
   "sessionSecret": "REPLACE_WITH_RANDOM_SECRET",
   "shell": "bash",
-  "tmuxPrefix": "tcc"
+  "tmuxPrefix": "tcc",
+  "termFontFamily": "monospace",
+  "termFontSize": 14,
+  "termEncoding": "utf-8",
+  "language": "en",
+  "loginRateLimit": {
+    "enabled": true,
+    "maxAttempts": 5,
+    "windowMs": 60000
+  }
 }
