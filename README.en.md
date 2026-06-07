@@ -22,6 +22,15 @@ network connection won't interrupt running processes. Who it's for:
 - **Developers and "vibe coders"**: run builds/tests/agents and keep many working
   sessions tidy on both desktop and mobile.
 
+> **⚠️ Limitation — TCC only manages tmux sessions, it does NOT persist/freeze terminals.**
+> The program **only manages tmux sessions**; it cannot store or "freeze" your
+> machine's terminal sessions. tmux sessions live only in the memory of the
+> running tmux server. Therefore, when the **machine shuts down**, or a service
+> related to TCC, tmux, or the terminal **crashes/restarts**, **all current tmux
+> sessions are lost**. TCC cannot recover the content/processes of lost sessions.
+> If you need data to survive a restart, save it to a file/log from within the
+> session itself.
+
 > **Cross-platform:** a **Linux build** is available today. **macOS** has install
 > scripts (launchd) but is **untested**. **Windows** will be developed in a
 > separate repository (`<link to be updated>`). See [Roadmap](./docs/ROADMAP.md).
@@ -34,7 +43,8 @@ network connection won't interrupt running processes. Who it's for:
 - **Sessions outlive the browser** thanks to tmux — closing a tab keeps the session alive
 - **Rename, notes, last access time** per session for easy management
 - **Drag-and-drop ordering** of sessions (stored server-side)
-- **Terminal control bar**: scroll, Enter, ESC, Ctrl+C, Tab, arrow keys, copy/paste
+- **Terminal control bar**: scroll up/down, Enter, ESC, Ctrl+C, Tab, arrow keys, copy/paste
+- **Mobile input box** (default on phones): tapping the terminal shows a textbox above the keyboard to compose a whole passage (lets you type **Vietnamese** on iPhone), then **inserts** it into the terminal at once (no trailing Enter)
 - **Character encoding config**: UTF-8, GBK, Big5, EUC-KR, Shift_JIS, TIS-620...
 - **Bilingual UI** English/Vietnamese (English by default, switch in Settings)
 - **Shell selection** when creating a session (configurable allowlist, default bash/zsh/sh/fish)
@@ -82,7 +92,7 @@ Edit `config.json` (created from `config.example.json`):
 | `termFontFamily` | Terminal font family (xterm.js) | `"monospace"` |
 | `termFontSize` | Terminal font size on **desktop** (8–40) | `14` |
 | `termFontSizeMobile` | Terminal font size on **mobile** (8–40). Client picks by screen width (≤640px = mobile) | `12` |
-| `mobileKeyboardMode` | How to handle the on-screen keyboard covering the terminal on mobile: `resize` (shrink terminal to fit the remaining viewport) or `input` (show a dedicated input box above the keyboard) | `"resize"` |
+| `mobileKeyboardMode` | How to handle the on-screen keyboard on mobile: `input` (**default**) shows a dedicated input box above the keyboard — compose a whole passage then **insert** it into the terminal (no trailing Enter), lets you type Vietnamese on iPhone; `resize` shrinks the terminal to fit the remaining viewport (type directly, Vietnamese IME may not work on iOS) | `"input"` |
 | `termEncoding` | Terminal character encoding (server transcodes to UTF-8). E.g. `utf-8`, `gbk`, `big5`, `euc-kr`, `tis-620` | `"utf-8"` |
 | `language` | UI language: `en` or `vi` | `"en"` |
 | `loginRateLimit.enabled` | Enable login attempt limiting (brute-force protection) | `true` |
@@ -103,7 +113,7 @@ Click the **⚙ Settings** button on the dashboard to open the settings panel. T
 - Toggle **require password** on access and **change the password** (stored as scrypt hash).
 - Configure **Host** and **Port** (requires restart to apply — see below).
 - Change terminal **font family** and **font size** — set separate sizes for **desktop** and **mobile**.
-- Choose the **mobile keyboard mode** (`mobileKeyboardMode`): *Shrink terminal to fit* or *Show input box* — reopen the terminal after changing.
+- Choose the **mobile keyboard mode** (`mobileKeyboardMode`): *Show input box* (default — compose then insert into the terminal, no trailing Enter) or *Shrink terminal to fit* — reopen the terminal after changing.
 - Set the **default path** for new sessions (`defaultPath`) — validated on save: must be an absolute, existing directory.
 - Select **character encoding** — reopen the terminal after changing.
 - Switch **UI language** (English/Vietnamese) — applied immediately.

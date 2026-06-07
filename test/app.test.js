@@ -191,7 +191,7 @@ describe('buildApp /api/settings', () => {
     const res = await app.inject({ method: 'GET', url: '/api/settings' });
     const body = JSON.parse(res.body);
     assert.strictEqual(body.termFontSizeMobile, 12);
-    assert.strictEqual(body.mobileKeyboardMode, 'resize');
+    assert.strictEqual(body.mobileKeyboardMode, 'input');
     await app.close();
   });
 

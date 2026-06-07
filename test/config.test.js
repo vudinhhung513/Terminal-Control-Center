@@ -33,8 +33,8 @@ describe('config DEFAULTS', () => {
     assert.ok(DEFAULTS.termFontSizeMobile >= 8 && DEFAULTS.termFontSizeMobile <= 40);
   });
 
-  it('mobileKeyboardMode mac dinh la resize', () => {
-    assert.strictEqual(DEFAULTS.mobileKeyboardMode, 'resize');
+  it('mobileKeyboardMode mac dinh la input', () => {
+    assert.strictEqual(DEFAULTS.mobileKeyboardMode, 'input');
   });
 
   it('tls mac dinh bat (enabled = true)', () => {

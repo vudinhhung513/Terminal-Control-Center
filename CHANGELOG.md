@@ -5,6 +5,38 @@ Tất cả thay đổi đáng chú ý của dự án được ghi tại đây.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/),
 và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.7.0] - 2026-06-07
+
+### Changed (Thay đổi)
+- **Bàn phím mobile mặc định = ô nhập liệu (`mobileKeyboardMode: 'input'`)**: đổi
+  mặc định từ `resize` → `input`. Lý do: gõ thẳng vào terminal trên iPhone **không
+  gõ được tiếng Việt** (IME iOS không tương thích `<textarea>` ẩn của xterm). Ở chế
+  độ `input`, chạm vào terminal sẽ hiện một ô `<input>` HTML thật ngay trên bàn
+  phím → soạn cả đoạn (gõ được tiếng Việt) rồi **chèn** vào terminal.
+- **Nút gửi chỉ CHÈN text, KHÔNG kèm Enter**: trước đây bấm gửi sẽ thêm `\r` (chạy
+  lệnh ngay). Giờ chỉ `sendInput(val)` chèn nguyên đoạn văn bản vào terminal một
+  lần; người dùng tự bấm nút **⏎** trên control bar khi muốn chạy. Tránh chạy nhầm
+  với văn bản nhiều dòng. Nút gửi đổi thành **icon máy bay giấy**.
+- `config.example.json` + `DEFAULTS.mobileKeyboardMode` đổi sang `input`.
+
+### Removed (Gỡ bỏ)
+- **Bỏ 2 nút "lên đầu" (⤒) / "xuống cuối" (⤓)** trên control bar terminal (chỉ giữ
+  cuộn lên ▲ / xuống ▼). Endpoint `/scroll` vẫn nhận `top`/`bottom` (không phá vỡ
+  API), chỉ là UI không còn nút gọi. Gỡ key i18n `ctrl.scrollTop`, `ctrl.scrollBottom`.
+
+### Fixed (Sửa lỗi)
+- **Dynamic Island / tai thỏ iPhone che phần đầu trang (PWA)**: khi "Add to Home
+  Screen" và chạy fullscreen, phần trên cùng bị Dynamic Island che. Thêm khoảng
+  trống an toàn qua `env(safe-area-inset-top/left/right)` cho header và
+  `safe-area-inset-bottom` cho control bar (tránh thanh Home indicator) — chỉ dùng
+  phần màn hình an toàn để làm việc. Trên trình duyệt thường các biến `env()` = 0
+  nên không ảnh hưởng.
+
+### Notes (Ghi chú)
+- **Giới hạn (đã ghi rõ trong README)**: TCC **chỉ quản lý các phiên tmux**, không
+  lưu trữ/đóng băng terminal. Tắt máy hoặc crash/restart service liên quan (TCC,
+  tmux, terminal) sẽ làm **mất toàn bộ phiên tmux hiện tại**.
+
 ## [1.6.0] - 2026-06-07
 
 ### Added (Thêm mới)

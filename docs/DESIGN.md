@@ -65,6 +65,24 @@
   **không có tác dụng** — khi attach tmux, tmux chiếm alternate-screen nên scrollback
   của xterm rỗng; scrollback thật nằm trong copy-mode của tmux. Đã xác minh bằng
   thực nghiệm (`scroll_position`, `pane_in_mode`) trước khi chọn hướng server-side.
+- **Cập nhật (v1.7.0)**: UI **bỏ 2 nút "lên đầu"/"xuống cuối"** (chỉ giữ cuộn
+  lên/xuống) cho gọn. Endpoint `/scroll` vẫn nhận `top`/`bottom` (không phá vỡ API),
+  chỉ là giao diện không còn nút gọi.
+
+### 11. Bàn phím mobile: mặc định ô nhập liệu, chỉ chèn text (không Enter)
+- **Bối cảnh**: gõ thẳng vào terminal trên iPhone không gõ được **tiếng Việt** —
+  IME tiếng Việt của iOS không tương thích với `<textarea>` ẩn của xterm.js (mất
+  dấu, không ghép được ký tự tổ hợp).
+- **Quyết định**: đổi `mobileKeyboardMode` mặc định `resize` → **`input`**. Ở chế
+  độ này hiện một ô `<input>` HTML thật phía trên bàn phím; IME hoạt động đúng nên
+  soạn được tiếng Việt. Nút gửi (icon máy bay giấy) **chỉ chèn (`sendInput(val)`)**
+  cả đoạn vào terminal **một lần, KHÔNG kèm `\r`** — người dùng tự bấm nút ⏎ để chạy.
+  Chạm vào terminal sẽ focus ô nhập (terminal đang `readOnly` ở chế độ này).
+- **Lý do**: tách "soạn thảo" (trình duyệt/IME xử lý) khỏi "thực thi" (terminal),
+  giúp văn bản đa ngôn ngữ chính xác trước khi đẩy vào shell; không tự Enter để
+  tránh chạy nhầm khi đoạn văn bản nhiều dòng.
+- **Đánh đổi**: thêm một bước (soạn rồi chèn) thay vì gõ realtime; bù lại gõ được
+  tiếng Việt và kiểm soát thời điểm chạy. Vẫn giữ `resize` cho ai muốn gõ trực tiếp.
 
 ### 8. Encoding: transcode bytes ↔ UTF-8 bằng iconv-lite
 - **Bối cảnh**: một số máy/chương trình xuất bảng mã cũ (GBK, Big5, EUC-KR, TIS-620,

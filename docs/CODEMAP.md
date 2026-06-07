@@ -57,7 +57,7 @@ Terminal-Control-Center/
 | `i18n.js` | **Đa ngôn ngữ EN/VI**: từ điển `DICT`, `window.I18N` (`setLang`/`getLang`/`t`/`apply`). | **Mọi text UI phải qua đây** (xem [I18N.md](./I18N.md)). |
 | `theme.js` | **Module theme dùng chung**: `window.Theme` (`applyTheme`/`resolveTheme`/`getMode`/`getResolved`). Resolve `auto` theo `prefers-color-scheme`, phát sự kiện `tcc:theme-change`. | Dùng cho cả dashboard + terminal. **Không set `data-theme` trực tiếp.** |
 | `dashboard.js` | Auth, danh sách phiên, tạo/xoá/đổi tên/ghi chú, kéo-thả, Settings, i18n, chọn shell, nút theme (dark/light/auto), hiện cảnh báo bảo mật. | `getCsrfToken()`, `mutHeaders()`, `t()` — dùng cho request đổi trạng thái + dịch. |
-| `terminal.js` | xterm + WebSocket, control bar (gồm copy/paste + phím mũi tên ↑↓←→), scroll (server-side), auto-reconnect, áp font + ngôn ngữ + theme (qua `window.Theme`). Cỡ chữ riêng desktop/mobile theo bề rộng màn hình; xử lý bàn phím ảo mobile (`mobileKeyboardMode`: `resize` qua `visualViewport` / `input` qua ô nhập riêng). | `KEY_MAP` (phím → escape), `scrollSession()`, `applyFontSize()`, `applyKeyboardMode()`, `focusActive()`, `t()`. |
+| `terminal.js` | xterm + WebSocket, control bar (copy/paste + phím mũi tên ↑↓←→ + cuộn lên/xuống), scroll (server-side), auto-reconnect, áp font + ngôn ngữ + theme (qua `window.Theme`). Cỡ chữ riêng desktop/mobile theo bề rộng màn hình; xử lý bàn phím ảo mobile (`mobileKeyboardMode`: **mặc định `input`** — chạm terminal focus ô nhập, nút gửi chỉ CHÈN text không kèm Enter; `resize` thu nhỏ qua `visualViewport`). | `KEY_MAP` (phím → escape), `scrollSession()`, `applyFontSize()`, `applyKeyboardMode()`, `focusActive()`, `t()`. |
 
 ## Tiện ích dùng chung (tránh viết trùng)
 

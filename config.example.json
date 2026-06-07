@@ -12,7 +12,7 @@
   "termFontFamily": "monospace",
   "termFontSize": 14,
   "termFontSizeMobile": 12,
-  "mobileKeyboardMode": "resize",
+  "mobileKeyboardMode": "input",
   "termEncoding": "utf-8",
   "language": "en",
   "loginRateLimit": {

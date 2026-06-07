@@ -35,9 +35,12 @@ export const DEFAULTS = {
   termFontSize: 14,
   termFontSizeMobile: 12,
   // Cach xu ly ban phim ao tren mobile (tranh che terminal):
-  // 'resize' = thu nho terminal theo vung hien thi con lai (go truc tiep);
-  // 'input'  = hien o nhap lieu rieng phia tren ban phim.
-  mobileKeyboardMode: 'resize',
+  // 'input'  = (mac dinh) hien o nhap lieu rieng phia tren ban phim. Go vao o
+  //            HTML that nen IME (vd tieng Viet tren iPhone) hoat dong dung;
+  //            bam nut gui chi CHEN text vao terminal, khong kem Enter.
+  // 'resize' = thu nho terminal theo vung hien thi con lai (go truc tiep vao
+  //            terminal — IME tieng Viet co the khong hoat dong tren iOS).
+  mobileKeyboardMode: 'input',
   // Bang ma ky tu cua terminal. xterm.js chi hieu UTF-8 nen server se
   // transcode tu bang ma nay sang UTF-8 (va nguoc lai) qua iconv-lite.
   // Vi du: 'utf-8', 'gbk', 'big5', 'euc-kr', 'tis-620', 'shift_jis'.

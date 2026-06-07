@@ -376,15 +376,27 @@
   }
 
   // === O nhap lieu mobile (che do mobileKeyboardMode='input') ===
-  // Go vao o nay roi Enter/Send: gui chuoi + xuong dong vao terminal, sau do
-  // xoa o de nhap tiep va giu focus (ban phim van mo).
+  // Soan van ban trong o nay (o input HTML that nen IME tieng Viet hoat dong
+  // dung tren iPhone) roi bam nut gui: CHI chen ca doan van ban vao terminal
+  // mot lan, KHONG kem ky tu Enter/return o cuoi. Nguoi dung tu bam nut ⏎ tren
+  // control bar khi muon chay lenh. Sau khi gui thi xoa o + giu focus.
   if (inputBar) {
     inputBar.addEventListener('submit', function (e) {
       e.preventDefault();
       var val = inputBarField.value;
-      sendInput(val + '\r');
+      if (val) sendInput(val);
       inputBarField.value = '';
       inputBarField.focus();
+    });
+  }
+
+  // Chon che do 'input' tren mobile: cham vao terminal se focus o nhap lieu
+  // (bung ban phim voi o textbox phia tren) thay vi focus terminal (dang readOnly).
+  if (container) {
+    container.addEventListener('click', function () {
+      if (isMobile() && mobileKeyboardMode === 'input' && inputBarField) {
+        inputBarField.focus();
+      }
     });
   }
 

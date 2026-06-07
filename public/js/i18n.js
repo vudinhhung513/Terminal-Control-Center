@@ -113,8 +113,6 @@
     'ctrl.right': { en: 'Right', vi: 'Phải' },
     'ctrl.scrollUp': { en: 'Scroll up', vi: 'Cuộn lên' },
     'ctrl.scrollDown': { en: 'Scroll down', vi: 'Cuộn xuống' },
-    'ctrl.scrollTop': { en: 'To top', vi: 'Lên đầu' },
-    'ctrl.scrollBottom': { en: 'To bottom', vi: 'Xuống cuối' },
 
     // Copy/Paste (mobile control bar)
     'ctrl.copy': { en: 'Copy', vi: 'Sao chép' },
@@ -124,8 +122,8 @@
     'ctrl.pastePrompt': { en: 'Auto-paste needs HTTPS — over HTTP the browser blocks clipboard access. Paste your text here then OK (or use Ctrl+Shift+V):', vi: 'Dán tự động cần HTTPS — đang chạy HTTP nên trình duyệt chặn đọc clipboard. Dán nội dung vào đây rồi bấm OK (hoặc dùng Ctrl+Shift+V):' },
 
     // O nhap lieu mobile (che do mobileKeyboardMode='input')
-    'input.placeholder': { en: 'Type here, then Enter to send…', vi: 'Gõ vào đây, Enter để gửi…' },
-    'input.send': { en: 'Send', vi: 'Gửi' },
+    'input.placeholder': { en: 'Type here, then insert…', vi: 'Gõ vào đây, rồi chèn…' },
+    'input.send': { en: 'Insert into terminal (no Enter)', vi: 'Chèn vào terminal (không kèm Enter)' },
 
     // Toolbar: chon shell
     'toolbar.shell': { en: 'Shell', vi: 'Shell' },
