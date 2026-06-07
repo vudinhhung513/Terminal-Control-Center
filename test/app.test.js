@@ -20,6 +20,7 @@ const BASE_CONFIG = {
   termFontFamily: 'monospace',
   termFontSize: 14,
   termEncoding: 'utf-8',
+  defaultPath: '',
   language: 'en',
   loginRateLimit: { enabled: true, maxAttempts: 5, windowMs: 60000 }
 };
@@ -161,6 +162,65 @@ describe('buildApp /api/settings', () => {
         cookie: cookieStr
       },
       body: JSON.stringify({ language: 'xx' })
+    });
+    assert.strictEqual(res.statusCode, 400);
+    await app.close();
+  });
+
+  it('GET /api/settings tra defaultPath', async () => {
+    const app = await makeApp();
+    const res = await app.inject({ method: 'GET', url: '/api/settings' });
+    const body = JSON.parse(res.body);
+    assert.strictEqual(typeof body.defaultPath, 'string');
+    await app.close();
+  });
+
+  it('PUT /api/settings + theme khong hop le (vd badtheme) -> 400', async () => {
+    const app = await makeApp();
+    const { token, cookieStr } = await getCsrf(app);
+    const res = await app.inject({
+      method: 'PUT',
+      url: '/api/settings',
+      headers: {
+        'content-type': 'application/json',
+        'x-csrf-token': token,
+        cookie: cookieStr
+      },
+      body: JSON.stringify({ theme: 'badtheme' })
+    });
+    assert.strictEqual(res.statusCode, 400);
+    await app.close();
+  });
+
+  it('PUT /api/settings + defaultPath khong tuyet doi -> 400', async () => {
+    const app = await makeApp();
+    const { token, cookieStr } = await getCsrf(app);
+    const res = await app.inject({
+      method: 'PUT',
+      url: '/api/settings',
+      headers: {
+        'content-type': 'application/json',
+        'x-csrf-token': token,
+        cookie: cookieStr
+      },
+      body: JSON.stringify({ defaultPath: 'relative/dir' })
+    });
+    assert.strictEqual(res.statusCode, 400);
+    await app.close();
+  });
+
+  it('PUT /api/settings + defaultPath thu muc khong ton tai -> 400', async () => {
+    const app = await makeApp();
+    const { token, cookieStr } = await getCsrf(app);
+    const res = await app.inject({
+      method: 'PUT',
+      url: '/api/settings',
+      headers: {
+        'content-type': 'application/json',
+        'x-csrf-token': token,
+        cookie: cookieStr
+      },
+      body: JSON.stringify({ defaultPath: '/nonexistent/path/xyz123' })
     });
     assert.strictEqual(res.statusCode, 400);
     await app.close();

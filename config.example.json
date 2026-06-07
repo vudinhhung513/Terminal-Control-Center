@@ -7,6 +7,7 @@
   "shell": "bash",
   "shells": ["bash", "zsh", "sh", "fish"],
   "theme": "dark",
+  "defaultPath": "",
   "tmuxPrefix": "tcc",
   "termFontFamily": "monospace",
   "termFontSize": 14,

@@ -17,6 +17,7 @@
   var inputPassword = document.getElementById('input-password');
   var btnLogout = document.getElementById('btn-logout');
   var btnRefresh = document.getElementById('btn-refresh');
+  var btnTheme = document.getElementById('btn-theme');
   var btnSettings = document.getElementById('btn-settings');
   var btnCreate = document.getElementById('btn-create');
   var inputSessionName = document.getElementById('input-session-name');
@@ -37,6 +38,21 @@
   // === Trang thai ===
   var authEnabled = false;
   var refreshTimer = null;
+  var themeMode = 'dark'; // mode theme hien tai: 'dark' | 'light' | 'auto'
+
+  // Thu tu xoay vong khi bam nut theme va icon tuong ung
+  var THEME_ORDER = ['dark', 'light', 'auto'];
+  var THEME_ICON = { dark: '\u{1F319}', light: '\u2600', auto: '\u{1F317}' };
+
+  /** Ap theme va cap nhat icon/title nut theme tren header. */
+  function applyThemeMode(mode) {
+    themeMode = (mode === 'light' || mode === 'auto') ? mode : 'dark';
+    window.Theme.applyTheme(themeMode);
+    if (btnTheme) {
+      btnTheme.textContent = THEME_ICON[themeMode] || THEME_ICON.dark;
+      btnTheme.title = t('btn.theme') + ': ' + t('theme.' + themeMode);
+    }
+  }
 
   // === CSRF helper ===
 
@@ -380,6 +396,7 @@
         document.getElementById('set-font-family').value = cfg.termFontFamily;
         document.getElementById('set-font-size').value = cfg.termFontSize;
         document.getElementById('set-encoding').value = cfg.termEncoding || 'utf-8';
+        document.getElementById('set-default-path').value = cfg.defaultPath || '';
         document.getElementById('set-language').value = cfg.language || 'en';
         document.getElementById('set-theme').value = cfg.theme || 'dark';
         document.getElementById('set-rl-enabled').checked = cfg.loginRateLimit.enabled;
@@ -407,6 +424,7 @@
       termFontFamily: document.getElementById('set-font-family').value.trim(),
       termFontSize: Number(document.getElementById('set-font-size').value),
       termEncoding: document.getElementById('set-encoding').value,
+      defaultPath: document.getElementById('set-default-path').value.trim(),
       language: document.getElementById('set-language').value,
       theme: document.getElementById('set-theme').value,
       loginRateLimit: {
@@ -425,8 +443,8 @@
         // Ap ngon ngu moi ngay lap tuc (re-render UI tinh + danh sach phien)
         window.I18N.setLang(payload.language);
         window.I18N.apply();
-        // Ap theme moi ngay lap tuc
-        document.documentElement.setAttribute('data-theme', payload.theme);
+        // Ap theme moi ngay lap tuc (qua module Theme dung chung)
+        applyThemeMode(payload.theme);
         loadSessions();
         showSettingsMsg(res.message || t('settings.saved'), 'info');
         // Cap nhat trang thai auth cuc bo
@@ -449,8 +467,8 @@
         // Ap ngon ngu truoc khi hien UI
         window.I18N.setLang(cfg.language || 'en');
         window.I18N.apply();
-        // Ap theme
-        document.documentElement.setAttribute('data-theme', cfg.theme || 'dark');
+        // Ap theme (qua module Theme dung chung, ho tro auto)
+        applyThemeMode(cfg.theme || 'dark');
         if (cfg.version && appVersionEl) appVersionEl.textContent = 'v' + cfg.version;
         // Nap danh sach shell vao select
         if (cfg.shells && cfg.shells.length && inputShell) {
@@ -499,6 +517,18 @@
   });
 
   btnRefresh.addEventListener('click', loadSessions);
+
+  // Nut theme: xoay vong dark -> light -> auto -> dark, ap ngay va luu len server
+  if (btnTheme) {
+    btnTheme.addEventListener('click', function () {
+      var idx = THEME_ORDER.indexOf(themeMode);
+      var next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
+      applyThemeMode(next);
+      saveSettings({ theme: next }).catch(function (err) {
+        showGlobalMsg(t('msg.saveSettingsFail') + (err.error || t('msg.unknownError')), 'error');
+      });
+    });
+  }
 
   btnCreate.addEventListener('click', function () {
     hideGlobalMsg();

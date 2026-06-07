@@ -46,6 +46,20 @@
   term.open(container);
   fit.fit();
 
+  /** Ap mau xterm theo theme da resolve ('dark'|'light'). */
+  function applyXtermTheme(resolved) {
+    if (resolved === 'light') {
+      term.options.theme = { background: '#ffffff', foreground: '#1a1b2e', cursor: '#1a1b2e' };
+    } else {
+      term.options.theme = { background: '#000000', foreground: '#ffffff', cursor: '#ffffff' };
+    }
+  }
+
+  // Theo doi thay doi theme (vd mode 'auto' khi he dieu hanh doi che do)
+  document.addEventListener('tcc:theme-change', function (e) {
+    if (e && e.detail) applyXtermTheme(e.detail.resolved);
+  });
+
   // Lay config server de ap font terminal + ngon ngu + theme
   fetch('/api/config')
     .then(function (res) { return res.json(); })
@@ -56,12 +70,9 @@
       window.I18N.setLang(cfg.language || 'en');
       window.I18N.apply();
       updateTitle();
-      // Ap theme
-      var theme = cfg.theme || 'dark';
-      document.documentElement.setAttribute('data-theme', theme);
-      if (theme === 'light') {
-        term.options.theme = { background: '#ffffff', foreground: '#1a1b2e', cursor: '#1a1b2e' };
-      }
+      // Ap theme (qua module Theme dung chung, ho tro auto)
+      var resolved = window.Theme.applyTheme(cfg.theme || 'dark');
+      applyXtermTheme(resolved);
       fit.fit();
       sendResize();
     })

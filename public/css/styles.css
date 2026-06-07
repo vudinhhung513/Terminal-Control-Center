@@ -120,6 +120,13 @@ html, body {
   font-size: 0.8rem;
 }
 
+/* Nut chi co icon (vuong, gon) — dung cho nut doi theme tren header */
+.btn--icon {
+  padding: 6px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 /* === Form elements === */
 .input {
   min-height: 44px;
@@ -412,16 +419,41 @@ html, body {
   padding: 0 6px;
 }
 
+/* Title + input cung mot hang de tiet kiem dien tich. Label trai co dinh,
+   input chiem phan con lai. */
 .settings-field {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
   font-size: 0.85rem;
+}
+
+.settings-field > span:first-child {
+  flex: 0 0 42%;
+  min-width: 0;
+}
+
+.settings-field .input {
+  flex: 1;
+  min-width: 0;
 }
 
 .settings-field small {
   color: var(--text-secondary);
   font-weight: 400;
+}
+
+/* Man hinh rat hep: xuong cot de khong vo layout */
+@media (max-width: 420px) {
+  .settings-field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .settings-field > span:first-child {
+    flex: none;
+  }
 }
 
 .settings-row {

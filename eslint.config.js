@@ -35,6 +35,7 @@ export default [
         document: 'readonly',
         location: 'readonly',
         fetch: 'readonly',
+        CustomEvent: 'readonly',
         WebSocket: 'readonly',
         Terminal: 'readonly',
         FitAddon: 'readonly',

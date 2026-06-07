@@ -23,4 +23,8 @@ describe('config DEFAULTS', () => {
   it('language mac dinh la en', () => {
     assert.strictEqual(DEFAULTS.language, 'en');
   });
+
+  it('defaultPath mac dinh la chuoi rong', () => {
+    assert.strictEqual(DEFAULTS.defaultPath, '');
+  });
 });

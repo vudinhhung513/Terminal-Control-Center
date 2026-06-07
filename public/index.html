@@ -19,6 +19,7 @@
     <h1 class="header__title"><span data-i18n="app.title">Terminal Control Center</span> <span id="app-version" class="app-version"></span></h1>
     <div class="header__actions">
       <button id="btn-refresh" class="btn btn--ghost btn--small" data-i18n="btn.refresh" data-i18n-title="btn.refresh">&#x21bb; Refresh</button>
+      <button id="btn-theme" class="btn btn--ghost btn--small btn--icon" data-i18n-title="btn.theme" aria-label="Theme">&#x1F319;</button>
       <button id="btn-settings" class="btn btn--ghost btn--small hidden" data-i18n="btn.settings" data-i18n-title="btn.settings">&#9881; Settings</button>
       <button id="btn-logout" class="btn btn--ghost btn--small hidden" data-i18n="btn.logout">Log out</button>
     </div>
@@ -109,6 +110,15 @@
           </label>
         </fieldset>
 
+        <!-- Nhom: Phien moi (default path) -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.sessionLegend">New session</legend>
+          <label class="settings-field">
+            <span><span data-i18n="settings.defaultPath">Default path</span> <small data-i18n="settings.defaultPathHint">(blank = tmux default)</small></span>
+            <input id="set-default-path" class="input" type="text" placeholder="~/projects">
+          </label>
+        </fieldset>
+
         <!-- Nhom: Bang ma (encoding) -->
         <fieldset class="settings-group">
           <legend data-i18n="settings.encodingLegend">Encoding</legend>
@@ -167,6 +177,7 @@
             <select id="set-theme" class="input">
               <option value="dark" data-i18n="theme.dark">Dark</option>
               <option value="light" data-i18n="theme.light">Light</option>
+              <option value="auto" data-i18n="theme.auto">Auto (system)</option>
             </select>
           </label>
         </fieldset>
@@ -189,6 +200,7 @@
   </div>
 
   <script src="js/i18n.js"></script>
+  <script src="js/theme.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
 </html>

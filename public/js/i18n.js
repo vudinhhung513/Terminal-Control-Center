@@ -15,6 +15,7 @@
     'app.title': { en: 'Terminal Control Center', vi: 'Terminal Control Center' },
     'btn.refresh': { en: '\u21bb Refresh', vi: '\u21bb Làm mới' },
     'btn.settings': { en: '\u2699 Settings', vi: '\u2699 Cài đặt' },
+    'btn.theme': { en: 'Theme', vi: 'Giao diện' },
     'btn.logout': { en: 'Log out', vi: 'Đăng xuất' },
 
     // Dang nhap
@@ -72,6 +73,9 @@
     'settings.encodingLegend': { en: 'Encoding', vi: 'Bảng mã (encoding)' },
     'settings.encoding': { en: 'Character encoding', vi: 'Bảng mã ký tự' },
     'settings.encodingHint': { en: '(reopen terminal after change)', vi: '(đổi xong cần mở lại terminal)' },
+    'settings.sessionLegend': { en: 'New session', vi: 'Phiên mới' },
+    'settings.defaultPath': { en: 'Default path', vi: 'Thư mục mặc định' },
+    'settings.defaultPathHint': { en: '(blank = tmux default)', vi: '(để trống = mặc định tmux)' },
     'settings.rlLegend': { en: 'Login brute-force protection', vi: 'Chống brute-force đăng nhập' },
     'settings.rlEnabled': { en: 'Enable attempt limit', vi: 'Bật giới hạn số lần thử' },
     'settings.rlMax': { en: 'Max attempts', vi: 'Số lần thử tối đa' },
@@ -117,6 +121,7 @@
     'settings.theme': { en: 'Color theme', vi: 'Tông màu' },
     'theme.dark': { en: 'Dark', vi: 'Tối' },
     'theme.light': { en: 'Light', vi: 'Sáng' },
+    'theme.auto': { en: 'Auto (system)', vi: 'Tự động (theo hệ thống)' },
 
     // Canh bao bao mat
     'warn.defaultSecret': { en: 'sessionSecret is still the default value \u2014 change it in config.json.', vi: 'sessionSecret v\u1EABn l\u00E0 gi\u00E1 tr\u1ECB m\u1EB7c \u0111\u1ECBnh \u2014 h\u00E3y \u0111\u1ED5i trong config.json.' },

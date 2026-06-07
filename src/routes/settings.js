@@ -12,6 +12,9 @@
 import { saveConfig, getConfig } from '../config.js';
 import { hashPassword, verifyPassword } from '../password.js';
 import { requireAuth, requireCsrf } from '../auth.js';
+import { expandHome } from '../tmux.js';
+import { statSync } from 'node:fs';
+import { isAbsolute } from 'node:path';
 import iconv from 'iconv-lite';
 
 /** Phat hien tien trinh dang chay duoi systemd. */
@@ -33,6 +36,7 @@ function publicSettings(cfg) {
     shell: cfg.shell,
     shells: cfg.shells,
     theme: cfg.theme,
+    defaultPath: cfg.defaultPath,
     tmuxPrefix: cfg.tmuxPrefix,
     termFontFamily: cfg.termFontFamily,
     termFontSize: cfg.termFontSize,
@@ -139,13 +143,44 @@ async function settingsPlugin(fastify, opts) {
       patch.language = body.language;
     }
 
-    // Theme giao dien (dark|light)
+    // Theme giao dien (dark|light|auto)
     if (body.theme !== undefined) {
-      if (body.theme !== 'dark' && body.theme !== 'light') {
-        reply.code(400).send({ error: 'theme must be dark or light' });
+      if (body.theme !== 'dark' && body.theme !== 'light' && body.theme !== 'auto') {
+        reply.code(400).send({ error: 'theme must be dark, light or auto' });
         return;
       }
       patch.theme = body.theme;
+    }
+
+    // Thu muc lam viec mac dinh cho phien moi.
+    // Rong = xoa default. Khac rong = phai la duong dan tuyet doi, ton tai,
+    // va la thu muc tren server (validate nghiem ngat khi luu).
+    if (body.defaultPath !== undefined) {
+      if (typeof body.defaultPath !== 'string') {
+        reply.code(400).send({ error: 'defaultPath must be a string' });
+        return;
+      }
+      const raw = body.defaultPath.trim();
+      if (raw === '') {
+        patch.defaultPath = '';
+      } else {
+        const dir = expandHome(raw);
+        if (!isAbsolute(dir)) {
+          reply.code(400).send({ error: 'defaultPath must be an absolute path' });
+          return;
+        }
+        let ok = false;
+        try {
+          ok = statSync(dir).isDirectory();
+        } catch {
+          ok = false;
+        }
+        if (!ok) {
+          reply.code(400).send({ error: 'defaultPath must be an existing directory' });
+          return;
+        }
+        patch.defaultPath = raw;
+      }
     }
 
     // Rate-limit dang nhap

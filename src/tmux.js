@@ -4,9 +4,23 @@
 
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { statSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { loadConfig } from './config.js';
 
 const execFileAsync = promisify(execFile);
+
+/**
+ * Expand '~' o dau duong dan thanh thu muc home cua user.
+ * @param {string} p
+ * @returns {string} duong dan da expand (giu nguyen neu khong bat dau bang ~)
+ */
+export function expandHome(p) {
+  if (typeof p !== 'string' || p === '') return p;
+  if (p === '~') return homedir();
+  if (p.startsWith('~/')) return homedir() + p.slice(1);
+  return p;
+}
 
 /**
  * Kiem tra ten phien hop le: chi cho phep A-Za-z0-9_- , do dai 1..64
@@ -84,7 +98,22 @@ export async function createSession(name, config, shell) {
     chosenShell = shell;
   }
 
-  const args = ['new-session', '-d', '-s', name, chosenShell];
+  const args = ['new-session', '-d', '-s', name];
+
+  // Thu muc lam viec mac dinh: neu config.defaultPath hop le va con ton tai
+  // (la thu muc) thi them '-c <path>'. Neu khong, bo qua (fallback an toan).
+  if (typeof config.defaultPath === 'string' && config.defaultPath.trim()) {
+    const dir = expandHome(config.defaultPath.trim());
+    try {
+      if (statSync(dir).isDirectory()) {
+        args.push('-c', dir);
+      }
+    } catch {
+      // Thu muc khong con ton tai → bo qua, tmux dung thu muc mac dinh
+    }
+  }
+
+  args.push(chosenShell);
   await execFileAsync('tmux', args);
   return name;
 }

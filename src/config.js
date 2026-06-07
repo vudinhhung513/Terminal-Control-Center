@@ -23,8 +23,11 @@ export const DEFAULTS = {
   // Danh sach shell cho phep chon khi tao phien (allowlist). La ranh gioi an
   // toan: chi cac gia tri trong day moi duoc truyen vao tmux new-session.
   shells: ['bash', 'zsh', 'sh', 'fish'],
-  // Theme giao dien: 'dark' (mac dinh) hoac 'light'.
+  // Theme giao dien: 'dark' (mac dinh), 'light' hoac 'auto' (theo he dieu hanh).
   theme: 'dark',
+  // Thu muc lam viec mac dinh cho phien tmux moi (rong = dung mac dinh cua tmux).
+  // Ho tro '~' (home). Khi tao phien se truyen qua 'tmux new-session -c'.
+  defaultPath: '',
   tmuxPrefix: 'tcc',
   // Cau hinh font terminal (ap dung phia client xterm.js)
   termFontFamily: 'monospace',
@@ -74,9 +77,14 @@ function normalize(cfg) {
     c.language = DEFAULTS.language;
   }
 
-  // Theme chi cho phep 'dark' hoac 'light'
-  if (c.theme !== 'dark' && c.theme !== 'light') {
+  // Theme chi cho phep 'dark', 'light' hoac 'auto'
+  if (c.theme !== 'dark' && c.theme !== 'light' && c.theme !== 'auto') {
     c.theme = DEFAULTS.theme;
+  }
+
+  // defaultPath phai la string; nguoc lai ve rong
+  if (typeof c.defaultPath !== 'string') {
+    c.defaultPath = DEFAULTS.defaultPath;
   }
 
   // shells phai la mang cac chuoi khong rong; loc rong, ve mac dinh neu trong

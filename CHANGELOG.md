@@ -5,6 +5,33 @@ Tất cả thay đổi đáng chú ý của dự án được ghi tại đây.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/),
 và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.4.0] - 2026-06-07
+
+### Added (Thêm mới)
+- **Thư mục mặc định cho phiên mới (`defaultPath`)**: thêm `config.defaultPath`
+  (rỗng = mặc định tmux). Khi tạo phiên, server truyền `tmux new-session -c <path>`
+  để vào thẳng thư mục đó (không cần `cd`). Hỗ trợ `~` (home). `PUT /api/settings`
+  validate nghiêm ngặt khi lưu: phải là đường dẫn tuyệt đối, tồn tại và là thư mục
+  (sai → 400). Lúc tạo phiên nếu thư mục không còn tồn tại thì bỏ qua `-c` an toàn.
+  Thêm field "Default path" trong Settings.
+- **Nút đổi giao diện trên home + chế độ Auto**: nút icon gọn (`#btn-theme`) cạnh
+  nút Settings, bấm xoay vòng `dark → light → auto`. Thêm `theme: 'auto'` (theo
+  `prefers-color-scheme` của hệ điều hành, tự đổi khi hệ thống đổi chế độ). Logic
+  theme tách ra module dùng chung `public/js/theme.js` (`window.Theme`:
+  `applyTheme`/`resolveTheme`), dùng cho cả dashboard và terminal; phát sự kiện
+  `tcc:theme-change` để terminal cập nhật màu xterm.
+- Các key i18n mới (EN+VI): `btn.theme`, `theme.auto`, `settings.sessionLegend`,
+  `settings.defaultPath`, `settings.defaultPathHint`.
+- Test: `expandHome` (tmux), validate `defaultPath` + `theme` (app), `DEFAULTS.defaultPath`.
+
+### Changed (Thay đổi)
+- **Gọn layout Settings**: `.settings-field` đổi sang một hàng (label trái cố định
+  ~42%, input chiếm phần còn lại) để tiết kiệm diện tích; màn rất hẹp (≤420px) tự
+  xuống cột.
+- `PUT /api/settings` chấp nhận `theme` = `dark|light|auto` (trước chỉ `dark|light`).
+- `GET/PUT /api/settings` trả/nhận thêm `defaultPath`.
+- `tmux.js` export thêm `expandHome()`; `createSession` thêm `-c <defaultPath>` khi hợp lệ.
+
 ## [1.3.0] - 2026-06-07
 
 ### Added (Thêm mới)

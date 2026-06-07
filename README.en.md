@@ -38,7 +38,8 @@ network connection won't interrupt running processes. Who it's for:
 - **Character encoding config**: UTF-8, GBK, Big5, EUC-KR, Shift_JIS, TIS-620...
 - **Bilingual UI** English/Vietnamese (English by default, switch in Settings)
 - **Shell selection** when creating a session (configurable allowlist, default bash/zsh/sh/fish)
-- **Light/Dark theme** switchable in Settings
+- **Default path for new sessions** (`defaultPath`): new sessions start directly in that directory
+- **Light/Dark/Auto theme** — compact icon button on dashboard; Auto follows the OS
 - **Copy/Paste on mobile** (buttons on control bar, using navigator.clipboard)
 - **Insecure config warnings** when sessionSecret is default or host is public without auth
 - **Authentication** toggle; scrypt-hashed password; brute-force protection
@@ -75,7 +76,8 @@ Edit `config.json` (created from `config.example.json`):
 | `sessionSecret` | Secret used to sign the session cookie. **Must change** in production | `"REPLACE_WITH_RANDOM_SECRET"` |
 | `shell` | Default shell for new sessions | `"bash"` |
 | `shells` | Allowlist of shells available for selection when creating sessions | `["bash","zsh","sh","fish"]` |
-| `theme` | UI theme: `dark` or `light` | `"dark"` |
+| `theme` | UI theme: `dark`, `light` or `auto` (follows the OS) | `"dark"` |
+| `defaultPath` | Default working directory for new sessions (blank = tmux default). Supports `~`. Passed via `tmux new-session -c` | `""` |
 | `tmuxPrefix` | Name prefix for tmux sessions managed by TCC | `"tcc"` |
 | `termFontFamily` | Terminal font family (xterm.js) | `"monospace"` |
 | `termFontSize` | Terminal font size (8–40) | `14` |
@@ -96,8 +98,10 @@ Click the **⚙ Settings** button on the dashboard to open the settings panel. T
 - Toggle **require password** on access and **change the password** (stored as scrypt hash).
 - Configure **Host** and **Port** (requires restart to apply — see below).
 - Change terminal **font family** and **font size**.
+- Set the **default path** for new sessions (`defaultPath`) — validated on save: must be an absolute, existing directory.
 - Select **character encoding** — reopen the terminal after changing.
 - Switch **UI language** (English/Vietnamese) — applied immediately.
+- Switch **theme** (Dark/Light/Auto) — there is also a compact icon button on the dashboard that cycles through them.
 - Adjust login **brute-force protection** parameters (max attempts, time window).
 
 When auth is enabled, changing sensitive items (password, auth, host, port) requires

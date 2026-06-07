@@ -3,7 +3,8 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateName } from '../src/tmux.js';
+import { homedir } from 'node:os';
+import { validateName, expandHome } from '../src/tmux.js';
 
 describe('validateName', () => {
   // Truong hop hop le
@@ -52,5 +53,24 @@ describe('validateName', () => {
     assert.strictEqual(validateName(null), false);
     assert.strictEqual(validateName(undefined), false);
     assert.strictEqual(validateName(123), false);
+  });
+});
+
+describe('expandHome', () => {
+  it('doi "~" thanh thu muc home', () => {
+    assert.strictEqual(expandHome('~'), homedir());
+  });
+
+  it('doi "~/..." thanh duong dan tuyet doi trong home', () => {
+    assert.strictEqual(expandHome('~/projects'), homedir() + '/projects');
+  });
+
+  it('giu nguyen duong dan tuyet doi khong co ~', () => {
+    assert.strictEqual(expandHome('/var/www'), '/var/www');
+  });
+
+  it('giu nguyen chuoi rong / gia tri khong phai string', () => {
+    assert.strictEqual(expandHome(''), '');
+    assert.strictEqual(expandHome(null), null);
   });
 });
