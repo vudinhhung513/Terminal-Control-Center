@@ -20,8 +20,10 @@
   var btnSettings = document.getElementById('btn-settings');
   var btnCreate = document.getElementById('btn-create');
   var inputSessionName = document.getElementById('input-session-name');
+  var inputShell = document.getElementById('input-shell');
   var sessionListEl = document.getElementById('session-list');
   var appVersionEl = document.getElementById('app-version');
+  var securityWarning = document.getElementById('security-warning');
 
   // Settings modal
   var settingsModal = document.getElementById('settings-modal');
@@ -103,9 +105,10 @@
     });
   }
 
-  function createSession(name) {
+  function createSession(name, shell) {
     var body = {};
     if (name) body.name = name;
+    if (shell) body.shell = shell;
     return fetch('/api/sessions', {
       method: 'POST', headers: mutHeaders(), body: JSON.stringify(body)
     }).then(function (res) {
@@ -378,6 +381,7 @@
         document.getElementById('set-font-size').value = cfg.termFontSize;
         document.getElementById('set-encoding').value = cfg.termEncoding || 'utf-8';
         document.getElementById('set-language').value = cfg.language || 'en';
+        document.getElementById('set-theme').value = cfg.theme || 'dark';
         document.getElementById('set-rl-enabled').checked = cfg.loginRateLimit.enabled;
         document.getElementById('set-rl-max').value = cfg.loginRateLimit.maxAttempts;
         document.getElementById('set-rl-window').value = Math.round(cfg.loginRateLimit.windowMs / 1000);
@@ -404,6 +408,7 @@
       termFontSize: Number(document.getElementById('set-font-size').value),
       termEncoding: document.getElementById('set-encoding').value,
       language: document.getElementById('set-language').value,
+      theme: document.getElementById('set-theme').value,
       loginRateLimit: {
         enabled: document.getElementById('set-rl-enabled').checked,
         maxAttempts: Number(document.getElementById('set-rl-max').value),
@@ -420,6 +425,8 @@
         // Ap ngon ngu moi ngay lap tuc (re-render UI tinh + danh sach phien)
         window.I18N.setLang(payload.language);
         window.I18N.apply();
+        // Ap theme moi ngay lap tuc
+        document.documentElement.setAttribute('data-theme', payload.theme);
         loadSessions();
         showSettingsMsg(res.message || t('settings.saved'), 'info');
         // Cap nhat trang thai auth cuc bo
@@ -442,7 +449,31 @@
         // Ap ngon ngu truoc khi hien UI
         window.I18N.setLang(cfg.language || 'en');
         window.I18N.apply();
+        // Ap theme
+        document.documentElement.setAttribute('data-theme', cfg.theme || 'dark');
         if (cfg.version && appVersionEl) appVersionEl.textContent = 'v' + cfg.version;
+        // Nap danh sach shell vao select
+        if (cfg.shells && cfg.shells.length && inputShell) {
+          inputShell.innerHTML = '';
+          cfg.shells.forEach(function (sh) {
+            var opt = document.createElement('option');
+            opt.value = sh;
+            opt.textContent = sh;
+            inputShell.appendChild(opt);
+          });
+        }
+        // Hien canh bao bao mat neu co
+        if (cfg.warnings && cfg.warnings.length && securityWarning) {
+          var msgs = cfg.warnings.map(function (code) {
+            if (code === 'defaultSecret') return t('warn.defaultSecret');
+            if (code === 'exposedNoAuth') return t('warn.exposedNoAuth');
+            return code;
+          });
+          securityWarning.textContent = msgs.join(' | ');
+          securityWarning.classList.remove('hidden');
+        } else if (securityWarning) {
+          securityWarning.classList.add('hidden');
+        }
         if (authEnabled && !cfg.authed) showLogin();
         else showDashboard();
       })
@@ -472,7 +503,8 @@
   btnCreate.addEventListener('click', function () {
     hideGlobalMsg();
     var name = inputSessionName.value.trim();
-    createSession(name)
+    var shell = inputShell ? inputShell.value : '';
+    createSession(name, shell)
       .then(function () { inputSessionName.value = ''; loadSessions(); })
       .catch(function (err) {
         showGlobalMsg(t('msg.createFail') + (err.error || t('msg.unknownError')), 'error');

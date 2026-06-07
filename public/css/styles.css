@@ -481,3 +481,18 @@ html, body {
 .hidden {
   display: none !important;
 }
+
+/* === Light theme override === */
+[data-theme="light"] {
+  --bg-primary: #f5f5fa;
+  --bg-secondary: #e8e8f0;
+  --bg-card: #ffffff;
+  --text-primary: #1a1b2e;
+  --text-secondary: #5a5a78;
+  --accent: #6c63ff;
+  --accent-hover: #5a52e0;
+  --danger: #e0334f;
+  --danger-hover: #c4283f;
+  --success: #2ea866;
+  --border: #d0d0e0;
+}

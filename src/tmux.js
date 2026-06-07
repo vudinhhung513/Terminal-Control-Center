@@ -58,9 +58,10 @@ export async function listSessions() {
  * Tao phien tmux moi.
  * @param {string} [name] - Ten phien (tu sinh neu rong/undefined)
  * @param {object} [config] - Config object (mac dinh loadConfig())
+ * @param {string} [shell] - Shell chon khi tao (phai nam trong config.shells)
  * @returns {Promise<string>} Ten phien da tao
  */
-export async function createSession(name, config) {
+export async function createSession(name, config, shell) {
   if (!config) config = loadConfig();
 
   // Tu sinh ten neu khong truyen
@@ -73,7 +74,17 @@ export async function createSession(name, config) {
     throw new Error(`Invalid session name: ${name}`);
   }
 
-  const args = ['new-session', '-d', '-s', name, config.shell];
+  // Chon shell: chi chap nhan shell nam trong allowlist; nguoc lai dung mac dinh.
+  // Allowlist la ranh gioi an toan, chong truyen lenh tuy y vao tmux.
+  let chosenShell = config.shell;
+  if (shell !== undefined && shell !== null && shell !== '') {
+    if (!Array.isArray(config.shells) || !config.shells.includes(shell)) {
+      throw new Error(`Shell not allowed: ${shell}`);
+    }
+    chosenShell = shell;
+  }
+
+  const args = ['new-session', '-d', '-s', name, chosenShell];
   await execFileAsync('tmux', args);
   return name;
 }

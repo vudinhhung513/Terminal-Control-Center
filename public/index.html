@@ -42,9 +42,13 @@
 
     <!-- Dashboard (an mac dinh) -->
     <section id="dashboard-section" class="hidden">
+      <!-- Canh bao bao mat -->
+      <div id="security-warning" class="message message--error hidden"></div>
+
       <!-- Toolbar tao phien -->
       <div class="toolbar">
-        <input id="input-session-name" class="input" type="text" data-i18n-placeholder="toolbar.sessionName" placeholder="Session name (optional)">
+        <input id="input-session-name" class="input" type="text" data-i18n-placeholder="toolbar.sessionName" placeholder="Session name (option, only A-Z a-z 0-9 _ -)">
+        <select id="input-shell" class="input" data-i18n-title="toolbar.shell" title="Shell"></select>
         <button id="btn-create" class="btn btn--primary" data-i18n="toolbar.create">+ New session</button>
       </div>
 
@@ -151,6 +155,18 @@
             <select id="set-language" class="input">
               <option value="en">English</option>
               <option value="vi">Tiếng Việt</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <!-- Nhom: Giao dien (theme) -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.themeLegend">Theme</legend>
+          <label class="settings-field">
+            <span data-i18n="settings.theme">Color theme</span>
+            <select id="set-theme" class="input">
+              <option value="dark" data-i18n="theme.dark">Dark</option>
+              <option value="light" data-i18n="theme.light">Light</option>
             </select>
           </label>
         </fieldset>

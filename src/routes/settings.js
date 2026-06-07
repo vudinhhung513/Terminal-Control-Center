@@ -31,6 +31,8 @@ function publicSettings(cfg) {
     // Khong tra password/sessionSecret; chi bao da dat mat khau hay chua
     hasPassword: Boolean(cfg.password),
     shell: cfg.shell,
+    shells: cfg.shells,
+    theme: cfg.theme,
     tmuxPrefix: cfg.tmuxPrefix,
     termFontFamily: cfg.termFontFamily,
     termFontSize: cfg.termFontSize,
@@ -135,6 +137,15 @@ async function settingsPlugin(fastify, opts) {
         return;
       }
       patch.language = body.language;
+    }
+
+    // Theme giao dien (dark|light)
+    if (body.theme !== undefined) {
+      if (body.theme !== 'dark' && body.theme !== 'light') {
+        reply.code(400).send({ error: 'theme must be dark or light' });
+        return;
+      }
+      patch.theme = body.theme;
     }
 
     // Rate-limit dang nhap

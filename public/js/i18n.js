@@ -25,7 +25,7 @@
     'login.wrong': { en: 'Wrong password.', vi: 'Sai mật khẩu.' },
 
     // Toolbar
-    'toolbar.sessionName': { en: 'Session name (optional)', vi: 'Tên phiên (tuỳ chọn)' },
+    'toolbar.sessionName': { en: 'Session name (option, only A-Z a-z 0-9 _ -)', vi: 'Tên phiên (tuỳ chọn, chỉ A-Z a-z 0-9 _ -)' },
     'toolbar.create': { en: '+ New session', vi: '+ Tạo phiên mới' },
 
     // Session card
@@ -103,7 +103,24 @@
     'ctrl.scrollUp': { en: 'Scroll up', vi: 'Cuộn lên' },
     'ctrl.scrollDown': { en: 'Scroll down', vi: 'Cuộn xuống' },
     'ctrl.scrollTop': { en: 'To top', vi: 'Lên đầu' },
-    'ctrl.scrollBottom': { en: 'To bottom', vi: 'Xuống cuối' }
+    'ctrl.scrollBottom': { en: 'To bottom', vi: 'Xuống cuối' },
+
+    // Copy/Paste (mobile control bar)
+    'ctrl.copy': { en: 'Copy', vi: 'Sao chép' },
+    'ctrl.paste': { en: 'Paste', vi: 'Dán' },
+
+    // Toolbar: chon shell
+    'toolbar.shell': { en: 'Shell', vi: 'Shell' },
+
+    // Settings: theme
+    'settings.themeLegend': { en: 'Theme', vi: 'Giao diện' },
+    'settings.theme': { en: 'Color theme', vi: 'Tông màu' },
+    'theme.dark': { en: 'Dark', vi: 'Tối' },
+    'theme.light': { en: 'Light', vi: 'Sáng' },
+
+    // Canh bao bao mat
+    'warn.defaultSecret': { en: 'sessionSecret is still the default value \u2014 change it in config.json.', vi: 'sessionSecret v\u1EABn l\u00E0 gi\u00E1 tr\u1ECB m\u1EB7c \u0111\u1ECBnh \u2014 h\u00E3y \u0111\u1ED5i trong config.json.' },
+    'warn.exposedNoAuth': { en: 'Server is exposed beyond localhost without authentication.', vi: 'Server \u0111ang expose ra ngo\u00E0i localhost m\u00E0 kh\u00F4ng b\u1EADt x\u00E1c th\u1EF1c.' }
   };
 
   // Ngon ngu hien tai (mac dinh 'en')

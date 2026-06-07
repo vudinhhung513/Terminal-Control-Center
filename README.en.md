@@ -22,8 +22,9 @@ network connection won't interrupt running processes. Who it's for:
 - **Developers and "vibe coders"**: run builds/tests/agents and keep many working
   sessions tidy on both desktop and mobile.
 
-> **Cross-platform:** a **Linux build** is available today. **macOS** and
-> **Windows** versions will roll out gradually (see [Roadmap](./docs/ROADMAP.md)).
+> **Cross-platform:** a **Linux build** is available today. **macOS** has install
+> scripts (launchd) but is **untested**. **Windows** will be developed in a
+> separate repository (`<link to be updated>`). See [Roadmap](./docs/ROADMAP.md).
 
 ## Features
 
@@ -36,6 +37,10 @@ network connection won't interrupt running processes. Who it's for:
 - **Terminal control bar**: scroll, Enter, ESC, Ctrl+C, Tab, arrow keys
 - **Character encoding config**: UTF-8, GBK, Big5, EUC-KR, Shift_JIS, TIS-620...
 - **Bilingual UI** English/Vietnamese (English by default, switch in Settings)
+- **Shell selection** when creating a session (configurable allowlist, default bash/zsh/sh/fish)
+- **Light/Dark theme** switchable in Settings
+- **Copy/Paste on mobile** (buttons on control bar, using navigator.clipboard)
+- **Insecure config warnings** when sessionSecret is default or host is public without auth
 - **Authentication** toggle; scrypt-hashed password; brute-force protection
 - **Responsive** — works on desktop and mobile
 - Default port: **7171** (configurable in `config.json`)
@@ -44,9 +49,9 @@ network connection won't interrupt running processes. Who it's for:
 
 | Component | Minimum version |
 |---|---|
-| OS | Ubuntu 20.04+ (or Debian-based) |
+| OS | Ubuntu 20.04+ (or Debian-based) / macOS 12+ (untested) |
 | Node.js | 18+ |
-| tmux | 3.0+ |
+| tmux | 3.0+ (Linux: apt install tmux; macOS: brew install tmux) |
 
 ## Installation
 
@@ -69,6 +74,8 @@ Edit `config.json` (created from `config.example.json`):
 | `password` | Login password. Stored as **scrypt hash** after changing via UI (only effective when `authEnabled: true`) | `""` |
 | `sessionSecret` | Secret used to sign the session cookie. **Must change** in production | `"REPLACE_WITH_RANDOM_SECRET"` |
 | `shell` | Default shell for new sessions | `"bash"` |
+| `shells` | Allowlist of shells available for selection when creating sessions | `["bash","zsh","sh","fish"]` |
+| `theme` | UI theme: `dark` or `light` | `"dark"` |
 | `tmuxPrefix` | Name prefix for tmux sessions managed by TCC | `"tcc"` |
 | `termFontFamily` | Terminal font family (xterm.js) | `"monospace"` |
 | `termFontSize` | Terminal font size (8–40) | `14` |
@@ -176,6 +183,43 @@ sudo systemctl restart terminal-control-center
 journalctl -u terminal-control-center -f
 ```
 
+## Install on macOS (launchd) — ⚠️ untested
+
+> **Note:** macOS install scripts are provided but have **not been tested on real
+> macOS hardware**. Community confirmation is needed.
+
+Requirements: Node.js 18+, tmux 3.0+ (install via `brew install tmux`).
+
+```bash
+chmod +x install-service-macos.sh
+./install-service-macos.sh
+```
+
+The script creates a LaunchAgent at
+`~/Library/LaunchAgents/com.tcc.terminal-control-center.plist` with `KeepAlive`
+and `RunAtLoad` (auto-starts on login).
+
+### Removing the macOS service
+
+```bash
+chmod +x uninstall-service-macos.sh
+./uninstall-service-macos.sh
+```
+
+### macOS service management commands
+
+```bash
+# Check status
+launchctl list | grep com.tcc
+
+# Stop
+launchctl unload ~/Library/LaunchAgents/com.tcc.terminal-control-center.plist
+
+# Restart
+launchctl unload ~/Library/LaunchAgents/com.tcc.terminal-control-center.plist
+launchctl load ~/Library/LaunchAgents/com.tcc.terminal-control-center.plist
+```
+
 ## REST API
 
 State-changing requests (POST/PUT/DELETE) require the `X-CSRF-Token` header
@@ -184,7 +228,7 @@ State-changing requests (POST/PUT/DELETE) require the `X-CSRF-Token` header
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/api/sessions` | List tmux sessions (with note, order, lastAccess) |
-| `POST` | `/api/sessions` | Create a new session |
+| `POST` | `/api/sessions` | Create a new session (body: `{name, shell?}` — shell must be in `config.shells`) |
 | `DELETE` | `/api/sessions/:name` | Kill a session by name |
 | `POST` | `/api/sessions/:name/touch` | Update last access time |
 | `PUT` | `/api/sessions/:name/note` | Save a note for the session |
@@ -195,7 +239,7 @@ State-changing requests (POST/PUT/DELETE) require the `X-CSRF-Token` header
 | `PUT` | `/api/settings` | Update config |
 | `POST` | `/api/login` | Log in (when auth is enabled) |
 | `POST` | `/api/logout` | Log out |
-| `GET` | `/api/config` | Get public config + version + font + language |
+| `GET` | `/api/config` | Get public config + version + font + language + theme + shells + warnings |
 
 ### WebSocket
 
@@ -213,13 +257,16 @@ Terminal-Control-Center/
 ├── data/                  # Session metadata (git-ignored, created at runtime)
 ├── docs/                  # Project documentation (see below)
 ├── start.sh               # Manual run script
-├── install-service.sh     # Install systemd service
-├── uninstall-service.sh   # Remove systemd service
+├── install-service.sh     # Install systemd service (Linux)
+├── uninstall-service.sh   # Remove systemd service (Linux)
+├── install-service-macos.sh   # Install launchd service (macOS, untested)
+├── uninstall-service-macos.sh # Remove launchd service (macOS, untested)
 ├── package.json
 ├── public/                # Frontend (HTML/CSS/JS)
 ├── src/                   # Node.js backend
-│   └── server.js          # Entry point
-└── test/                  # Unit tests
+│   ├── app.js             # buildApp + computeWarnings (Fastify app, no listen)
+│   └── server.js          # Entry point (reads config, calls buildApp, listens)
+└── test/                  # Unit tests + integration tests
 ```
 
 ## Documentation

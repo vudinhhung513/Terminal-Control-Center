@@ -20,6 +20,11 @@ export const DEFAULTS = {
   password: '',
   sessionSecret: 'REPLACE_WITH_RANDOM_SECRET',
   shell: 'bash',
+  // Danh sach shell cho phep chon khi tao phien (allowlist). La ranh gioi an
+  // toan: chi cac gia tri trong day moi duoc truyen vao tmux new-session.
+  shells: ['bash', 'zsh', 'sh', 'fish'],
+  // Theme giao dien: 'dark' (mac dinh) hoac 'light'.
+  theme: 'dark',
   tmuxPrefix: 'tcc',
   // Cau hinh font terminal (ap dung phia client xterm.js)
   termFontFamily: 'monospace',
@@ -67,6 +72,26 @@ function normalize(cfg) {
   // Ngon ngu chi cho phep 'en' hoac 'vi'
   if (c.language !== 'en' && c.language !== 'vi') {
     c.language = DEFAULTS.language;
+  }
+
+  // Theme chi cho phep 'dark' hoac 'light'
+  if (c.theme !== 'dark' && c.theme !== 'light') {
+    c.theme = DEFAULTS.theme;
+  }
+
+  // shells phai la mang cac chuoi khong rong; loc rong, ve mac dinh neu trong
+  if (!Array.isArray(c.shells)) {
+    c.shells = [...DEFAULTS.shells];
+  } else {
+    c.shells = c.shells
+      .filter((s) => typeof s === 'string' && s.trim())
+      .map((s) => s.trim());
+    if (c.shells.length === 0) c.shells = [...DEFAULTS.shells];
+  }
+
+  // shell mac dinh phai nam trong allowlist; nguoc lai dung phan tu dau
+  if (typeof c.shell !== 'string' || !c.shells.includes(c.shell)) {
+    c.shell = c.shells[0];
   }
 
   // Merge sau cho loginRateLimit (tranh thieu field)

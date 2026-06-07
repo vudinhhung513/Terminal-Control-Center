@@ -46,7 +46,7 @@
   term.open(container);
   fit.fit();
 
-  // Lay config server de ap font terminal + ngon ngu
+  // Lay config server de ap font terminal + ngon ngu + theme
   fetch('/api/config')
     .then(function (res) { return res.json(); })
     .then(function (cfg) {
@@ -56,6 +56,12 @@
       window.I18N.setLang(cfg.language || 'en');
       window.I18N.apply();
       updateTitle();
+      // Ap theme
+      var theme = cfg.theme || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+      if (theme === 'light') {
+        term.options.theme = { background: '#ffffff', foreground: '#1a1b2e', cursor: '#1a1b2e' };
+      }
       fit.fit();
       sendResize();
     })
@@ -169,6 +175,26 @@
       var scroll = btn.dataset.scroll;
       if (scroll) {
         scrollSession(scroll);
+        return;
+      }
+
+      // Nut copy/paste (clipboard API)
+      var action = btn.dataset.action;
+      if (action === 'copy') {
+        var sel = term.getSelection();
+        if (sel && window.navigator && window.navigator.clipboard) {
+          window.navigator.clipboard.writeText(sel).catch(function () {});
+        }
+        term.focus();
+        return;
+      }
+      if (action === 'paste') {
+        if (window.navigator && window.navigator.clipboard) {
+          window.navigator.clipboard.readText().then(function (txt) {
+            if (txt) sendInput(txt);
+          }).catch(function () {});
+        }
+        term.focus();
         return;
       }
 

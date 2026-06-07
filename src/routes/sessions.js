@@ -34,7 +34,7 @@ async function sessionsPlugin(fastify, opts) {
 
   // POST /api/sessions — tao phien moi
   fastify.post('/api/sessions', { preHandler: [authHook, csrfHook] }, async (request, reply) => {
-    const { name } = request.body || {};
+    const { name, shell } = request.body || {};
 
     // Validate ten neu truyen vao
     if (name !== undefined && name !== null && name !== '') {
@@ -51,8 +51,16 @@ async function sessionsPlugin(fastify, opts) {
       }
     }
 
+    // Validate shell neu truyen vao (phai nam trong allowlist config.shells)
+    if (shell !== undefined && shell !== null && shell !== '') {
+      if (!config.shells.includes(shell)) {
+        reply.code(400).send({ error: `Shell not allowed: ${shell}` });
+        return;
+      }
+    }
+
     try {
-      const createdName = await createSession(name || undefined, config);
+      const createdName = await createSession(name || undefined, config, shell || undefined);
       reply.code(201).send({ name: createdName });
     } catch (err) {
       // Truong hop loi tu tmux (vd: phien da ton tai do race condition)

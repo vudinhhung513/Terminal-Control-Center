@@ -5,6 +5,8 @@
   "password": "",
   "sessionSecret": "REPLACE_WITH_RANDOM_SECRET",
   "shell": "bash",
+  "shells": ["bash", "zsh", "sh", "fish"],
+  "theme": "dark",
   "tmuxPrefix": "tcc",
   "termFontFamily": "monospace",
   "termFontSize": 14,
