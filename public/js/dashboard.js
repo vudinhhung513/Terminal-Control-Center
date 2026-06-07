@@ -395,6 +395,8 @@
         document.getElementById('set-port').value = cfg.port;
         document.getElementById('set-font-family').value = cfg.termFontFamily;
         document.getElementById('set-font-size').value = cfg.termFontSize;
+        document.getElementById('set-font-size-mobile').value = cfg.termFontSizeMobile;
+        document.getElementById('set-mobile-keyboard').value = cfg.mobileKeyboardMode || 'resize';
         document.getElementById('set-encoding').value = cfg.termEncoding || 'utf-8';
         document.getElementById('set-default-path').value = cfg.defaultPath || '';
         document.getElementById('set-language').value = cfg.language || 'en';
@@ -423,6 +425,8 @@
       port: Number(document.getElementById('set-port').value),
       termFontFamily: document.getElementById('set-font-family').value.trim(),
       termFontSize: Number(document.getElementById('set-font-size').value),
+      termFontSizeMobile: Number(document.getElementById('set-font-size-mobile').value),
+      mobileKeyboardMode: document.getElementById('set-mobile-keyboard').value,
       termEncoding: document.getElementById('set-encoding').value,
       defaultPath: document.getElementById('set-default-path').value.trim(),
       language: document.getElementById('set-language').value,

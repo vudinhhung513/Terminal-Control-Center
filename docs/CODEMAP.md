@@ -22,7 +22,8 @@ Terminal-Control-Center/
 ├── docs/                   # Tài liệu dự án
 ├── public/                 # Frontend
 │   ├── index.html          # Dashboard + modal Settings
-│   ├── terminal.html       # Trang terminal + control bar
+│   ├── terminal.html       # Trang terminal + control bar + ô nhập mobile
+│   ├── manifest.json       # PWA manifest (fullscreen, ẩn thanh menu trình duyệt mobile)
 │   ├── css/styles.css      # Toàn bộ style (dark/light theme qua data-theme)
 │   ├── js/i18n.js          # Đa ngôn ngữ EN/VI (từ điển + apply)
 │   ├── js/theme.js         # Module theme dùng chung (dark/light/auto)
@@ -39,7 +40,7 @@ Terminal-Control-Center/
 |---|---|---|
 | `app.js` | Dựng Fastify app qua `buildApp(config, {version})` + export `computeWarnings(config)`. Không listen — phục vụ test inject. | Đăng ký plugin, route, content-type parser (body JSON rỗng→{}). |
 | `server.js` | Entry point: đọc config + version từ `package.json`, gọi `buildApp` rồi `listen`. | Giờ chỉ orchestrate, logic app nằm ở `app.js`. |
-| `config.js` | Đọc/validate/**ghi atomic** `config.json`; config in-memory dùng chung; `saveConfig` cập nhật runtime. | `loadConfig`, `getConfig`, `saveConfig`, `DEFAULTS`. Validate encoding (iconv) + language + shells + theme. |
+| `config.js` | Đọc/validate/**ghi atomic** `config.json`; config in-memory dùng chung; `saveConfig` cập nhật runtime. | `loadConfig`, `getConfig`, `saveConfig`, `DEFAULTS`. Validate encoding (iconv) + language + shells + theme + termFontSize(Mobile) + mobileKeyboardMode. |
 | `auth.js` | Login/logout, `isAuthed`, `requireAuth`, `requireCsrf`, rate-limit, `registerCsrfCookie`. | CSRF double-submit (cookie set top-level) + rate-limit in-memory. |
 | `password.js` | Hash/verify mật khẩu scrypt. | `hashPassword`, `verifyPassword`, `isHashed`. |
 | `tmux.js` | Thao tác tmux qua `execFile`. | `validateName`, `expandHome`, `listSessions`, `createSession(name, config, shell)` (validate shell thuộc allowlist `config.shells`; thêm `-c <defaultPath>` nếu hợp lệ), `killSession`, `renameSession`, `hasSession`, `scrollSession`. |
@@ -47,7 +48,7 @@ Terminal-Control-Center/
 | `ws-session.js` | WebSocket bridge tmux ↔ xterm qua node-pty + transcode encoding (iconv-lite). | UTF-8 → truyền thẳng; khác → decode/encode streaming. |
 | `routes/sessions.js` | REST: list/create/kill phiên, merge metadata. | POST nhận field `shell` (validate thuộc `config.shells`). |
 | `routes/meta.js` | REST: touch/note/rename/order/**scroll**. | |
-| `routes/settings.js` | REST: GET/PUT cấu hình (gồm encoding, language, theme dark/light/auto, shell, shells, defaultPath); xử lý restart. | GET trả thêm shell, shells, theme, defaultPath. PUT validate defaultPath (tuyệt đối, tồn tại, là thư mục). |
+| `routes/settings.js` | REST: GET/PUT cấu hình (gồm encoding, language, theme dark/light/auto, shell, shells, defaultPath, termFontSize(Mobile), mobileKeyboardMode); xử lý restart. | GET trả thêm shell, shells, theme, defaultPath, termFontSizeMobile, mobileKeyboardMode. PUT validate defaultPath (tuyệt đối, tồn tại, là thư mục) + mobileKeyboardMode (resize\|input). |
 
 ## Frontend (public/js/)
 
@@ -56,7 +57,7 @@ Terminal-Control-Center/
 | `i18n.js` | **Đa ngôn ngữ EN/VI**: từ điển `DICT`, `window.I18N` (`setLang`/`getLang`/`t`/`apply`). | **Mọi text UI phải qua đây** (xem [I18N.md](./I18N.md)). |
 | `theme.js` | **Module theme dùng chung**: `window.Theme` (`applyTheme`/`resolveTheme`/`getMode`/`getResolved`). Resolve `auto` theo `prefers-color-scheme`, phát sự kiện `tcc:theme-change`. | Dùng cho cả dashboard + terminal. **Không set `data-theme` trực tiếp.** |
 | `dashboard.js` | Auth, danh sách phiên, tạo/xoá/đổi tên/ghi chú, kéo-thả, Settings, i18n, chọn shell, nút theme (dark/light/auto), hiện cảnh báo bảo mật. | `getCsrfToken()`, `mutHeaders()`, `t()` — dùng cho request đổi trạng thái + dịch. |
-| `terminal.js` | xterm + WebSocket, control bar (gồm copy/paste mobile), scroll (server-side), auto-reconnect, áp font + ngôn ngữ + theme (qua `window.Theme`). | `KEY_MAP` (phím → escape), `scrollSession()`, `t()`. |
+| `terminal.js` | xterm + WebSocket, control bar (gồm copy/paste + phím mũi tên ↑↓←→), scroll (server-side), auto-reconnect, áp font + ngôn ngữ + theme (qua `window.Theme`). Cỡ chữ riêng desktop/mobile theo bề rộng màn hình; xử lý bàn phím ảo mobile (`mobileKeyboardMode`: `resize` qua `visualViewport` / `input` qua ô nhập riêng). | `KEY_MAP` (phím → escape), `scrollSession()`, `applyFontSize()`, `applyKeyboardMode()`, `focusActive()`, `t()`. |
 
 ## Tiện ích dùng chung (tránh viết trùng)
 

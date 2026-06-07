@@ -8,7 +8,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- PWA: an thanh menu trinh duyet khi mo tu man hinh chinh (Add to Home Screen) -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Terminal">
+  <meta name="theme-color" content="#1a1b2e">
+  <link rel="manifest" href="manifest.json">
   <title>Terminal Control Center</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -103,8 +110,19 @@
             <input id="set-font-family" class="input" type="text" placeholder="monospace">
           </label>
           <label class="settings-field">
-            <span data-i18n="settings.fontSize">Font size (8–40)</span>
+            <span data-i18n="settings.fontSize">Desktop font size (8–40)</span>
             <input id="set-font-size" class="input" type="number" min="8" max="40" placeholder="14">
+          </label>
+          <label class="settings-field">
+            <span data-i18n="settings.fontSizeMobile">Mobile font size (8–40)</span>
+            <input id="set-font-size-mobile" class="input" type="number" min="8" max="40" placeholder="12">
+          </label>
+          <label class="settings-field">
+            <span><span data-i18n="settings.mobileKeyboard">Mobile keyboard</span> <small data-i18n="settings.mobileKeyboardHint">(reopen terminal after change)</small></span>
+            <select id="set-mobile-keyboard" class="input">
+              <option value="resize" data-i18n="settings.mobileKeyboardResize">Shrink terminal to fit</option>
+              <option value="input" data-i18n="settings.mobileKeyboardInput">Show input box</option>
+            </select>
           </label>
         </fieldset>
 

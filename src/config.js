@@ -31,7 +31,13 @@ export const DEFAULTS = {
   tmuxPrefix: 'tcc',
   // Cau hinh font terminal (ap dung phia client xterm.js)
   termFontFamily: 'monospace',
+  // Co chu mac dinh cho desktop va mobile (client tu chon theo kich thuoc man hinh)
   termFontSize: 14,
+  termFontSizeMobile: 12,
+  // Cach xu ly ban phim ao tren mobile (tranh che terminal):
+  // 'resize' = thu nho terminal theo vung hien thi con lai (go truc tiep);
+  // 'input'  = hien o nhap lieu rieng phia tren ban phim.
+  mobileKeyboardMode: 'resize',
   // Bang ma ky tu cua terminal. xterm.js chi hieu UTF-8 nen server se
   // transcode tu bang ma nay sang UTF-8 (va nguoc lai) qua iconv-lite.
   // Vi du: 'utf-8', 'gbk', 'big5', 'euc-kr', 'tis-620', 'shift_jis'.
@@ -76,6 +82,16 @@ function normalize(cfg) {
   // Co font size hop le
   if (!Number.isFinite(c.termFontSize) || c.termFontSize < 8 || c.termFontSize > 40) {
     c.termFontSize = DEFAULTS.termFontSize;
+  }
+
+  // Co font size mobile hop le
+  if (!Number.isFinite(c.termFontSizeMobile) || c.termFontSizeMobile < 8 || c.termFontSizeMobile > 40) {
+    c.termFontSizeMobile = DEFAULTS.termFontSizeMobile;
+  }
+
+  // Che do ban phim mobile chi cho phep 'resize' hoac 'input'
+  if (c.mobileKeyboardMode !== 'resize' && c.mobileKeyboardMode !== 'input') {
+    c.mobileKeyboardMode = DEFAULTS.mobileKeyboardMode;
   }
 
   // Bang ma phai duoc iconv-lite ho tro, nguoc lai dung mac dinh

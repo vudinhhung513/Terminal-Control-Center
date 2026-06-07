@@ -69,7 +69,12 @@
     'settings.port': { en: 'Port', vi: 'Port' },
     'settings.fontLegend': { en: 'Terminal font', vi: 'Font terminal' },
     'settings.fontFamily': { en: 'Font family', vi: 'Font family' },
-    'settings.fontSize': { en: 'Font size (8\u201340)', vi: 'Cỡ chữ (8\u201340)' },
+    'settings.fontSize': { en: 'Desktop font size (8\u201340)', vi: 'Cỡ chữ desktop (8\u201340)' },
+    'settings.fontSizeMobile': { en: 'Mobile font size (8\u201340)', vi: 'Cỡ chữ mobile (8\u201340)' },
+    'settings.mobileKeyboard': { en: 'Mobile keyboard', vi: 'Bàn phím mobile' },
+    'settings.mobileKeyboardHint': { en: '(reopen terminal after change)', vi: '(đổi xong cần mở lại terminal)' },
+    'settings.mobileKeyboardResize': { en: 'Shrink terminal to fit', vi: 'Thu nhỏ terminal cho vừa' },
+    'settings.mobileKeyboardInput': { en: 'Show input box', vi: 'Hiện ô nhập liệu' },
     'settings.encodingLegend': { en: 'Encoding', vi: 'Bảng mã (encoding)' },
     'settings.encoding': { en: 'Character encoding', vi: 'Bảng mã ký tự' },
     'settings.encodingHint': { en: '(reopen terminal after change)', vi: '(đổi xong cần mở lại terminal)' },
@@ -102,6 +107,8 @@
     'ctrl.esc': { en: 'ESC', vi: 'ESC' },
     'ctrl.ctrlc': { en: 'Ctrl+C', vi: 'Ctrl+C' },
     'ctrl.tab': { en: 'Tab', vi: 'Tab' },
+    'ctrl.up': { en: 'Up', vi: 'Lên' },
+    'ctrl.down': { en: 'Down', vi: 'Xuống' },
     'ctrl.left': { en: 'Left', vi: 'Trái' },
     'ctrl.right': { en: 'Right', vi: 'Phải' },
     'ctrl.scrollUp': { en: 'Scroll up', vi: 'Cuộn lên' },
@@ -115,6 +122,10 @@
     'ctrl.copyOk': { en: 'Copied', vi: 'Đã sao chép' },
     'ctrl.copyEmpty': { en: 'Select text first', vi: 'Hãy bôi đen vùng cần sao chép' },
     'ctrl.pastePrompt': { en: 'Auto-paste needs HTTPS — over HTTP the browser blocks clipboard access. Paste your text here then OK (or use Ctrl+Shift+V):', vi: 'Dán tự động cần HTTPS — đang chạy HTTP nên trình duyệt chặn đọc clipboard. Dán nội dung vào đây rồi bấm OK (hoặc dùng Ctrl+Shift+V):' },
+
+    // O nhap lieu mobile (che do mobileKeyboardMode='input')
+    'input.placeholder': { en: 'Type here, then Enter to send…', vi: 'Gõ vào đây, Enter để gửi…' },
+    'input.send': { en: 'Send', vi: 'Gửi' },
 
     // Toolbar: chon shell
     'toolbar.shell': { en: 'Shell', vi: 'Shell' },

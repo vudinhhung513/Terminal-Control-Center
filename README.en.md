@@ -80,7 +80,9 @@ Edit `config.json` (created from `config.example.json`):
 | `defaultPath` | Default working directory for new sessions (blank = tmux default). Supports `~`. Passed via `tmux new-session -c` | `""` |
 | `tmuxPrefix` | Name prefix for tmux sessions managed by TCC | `"tcc"` |
 | `termFontFamily` | Terminal font family (xterm.js) | `"monospace"` |
-| `termFontSize` | Terminal font size (8–40) | `14` |
+| `termFontSize` | Terminal font size on **desktop** (8–40) | `14` |
+| `termFontSizeMobile` | Terminal font size on **mobile** (8–40). Client picks by screen width (≤640px = mobile) | `12` |
+| `mobileKeyboardMode` | How to handle the on-screen keyboard covering the terminal on mobile: `resize` (shrink terminal to fit the remaining viewport) or `input` (show a dedicated input box above the keyboard) | `"resize"` |
 | `termEncoding` | Terminal character encoding (server transcodes to UTF-8). E.g. `utf-8`, `gbk`, `big5`, `euc-kr`, `tis-620` | `"utf-8"` |
 | `language` | UI language: `en` or `vi` | `"en"` |
 | `loginRateLimit.enabled` | Enable login attempt limiting (brute-force protection) | `true` |
@@ -100,7 +102,8 @@ Click the **⚙ Settings** button on the dashboard to open the settings panel. T
 
 - Toggle **require password** on access and **change the password** (stored as scrypt hash).
 - Configure **Host** and **Port** (requires restart to apply — see below).
-- Change terminal **font family** and **font size**.
+- Change terminal **font family** and **font size** — set separate sizes for **desktop** and **mobile**.
+- Choose the **mobile keyboard mode** (`mobileKeyboardMode`): *Shrink terminal to fit* or *Show input box* — reopen the terminal after changing.
 - Set the **default path** for new sessions (`defaultPath`) — validated on save: must be an absolute, existing directory.
 - Select **character encoding** — reopen the terminal after changing.
 - Switch **UI language** (English/Vietnamese) — applied immediately.

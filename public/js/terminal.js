@@ -18,9 +18,66 @@
   var reconnectOverlay = document.getElementById('reconnect-overlay');
   var btnReconnect = document.getElementById('btn-reconnect');
   var controlBar = document.getElementById('control-bar');
+  var inputBar = document.getElementById('input-bar');
+  var inputBarField = document.getElementById('input-bar-field');
 
   /** Shorthand dich i18n. */
   function t(key, vars) { return window.I18N.t(key, vars); }
+
+  // Nguong coi la mobile (khop breakpoint responsive trong styles.css)
+  var MOBILE_MAX_WIDTH = 640;
+  /** Co phai dang xem tren man hinh mobile khong (theo be rong viewport). */
+  function isMobile() {
+    return window.matchMedia
+      ? window.matchMedia('(max-width: ' + MOBILE_MAX_WIDTH + 'px)').matches
+      : window.innerWidth <= MOBILE_MAX_WIDTH;
+  }
+
+  // Co chu desktop/mobile lay tu config (cap nhat sau khi fetch /api/config)
+  var fontSizeDesktop = 14;
+  var fontSizeMobile = 12;
+
+  // Che do ban phim mobile: 'resize' (thu nho terminal) | 'input' (o nhap rieng)
+  var mobileKeyboardMode = 'resize';
+
+  /** Ap font size phu hop voi kich thuoc man hinh hien tai. */
+  function applyFontSize() {
+    var size = isMobile() ? fontSizeMobile : fontSizeDesktop;
+    if (term.options.fontSize !== size) {
+      term.options.fontSize = size;
+    }
+  }
+
+  /**
+   * Ap che do ban phim mobile:
+   * - 'input': hien o nhap lieu rieng + tat ban phim ao cua terminal (tranh
+   *   terminal chiem focus va tranh ban phim che noi dung).
+   * - 'resize': an o nhap, go truc tiep vao terminal (chieu cao trang da duoc
+   *   thu nho theo visualViewport o ham applyViewportHeight).
+   */
+  function applyKeyboardMode() {
+    var useInput = isMobile() && mobileKeyboardMode === 'input';
+    if (inputBar) inputBar.classList.toggle('hidden', !useInput);
+    // Bat/tat ban phim ao cua terminal qua textarea an cua xterm
+    if (term.textarea) {
+      if (useInput) {
+        term.textarea.setAttribute('inputmode', 'none');
+        term.textarea.readOnly = true;
+      } else {
+        term.textarea.removeAttribute('inputmode');
+        term.textarea.readOnly = false;
+      }
+    }
+  }
+
+  /** Focus dung dich theo che do (o nhap rieng o mode 'input', nguoc lai terminal). */
+  function focusActive() {
+    if (isMobile() && mobileKeyboardMode === 'input' && inputBarField) {
+      inputBarField.focus();
+    } else {
+      term.focus();
+    }
+  }
 
   /** Cap nhat tieu de phien theo ngon ngu hien tai. */
   function updateTitle() {
@@ -65,7 +122,13 @@
     .then(function (res) { return res.json(); })
     .then(function (cfg) {
       if (cfg.termFontFamily) term.options.fontFamily = cfg.termFontFamily;
-      if (cfg.termFontSize) term.options.fontSize = cfg.termFontSize;
+      // Luu co chu desktop/mobile roi ap theo kich thuoc man hinh
+      if (cfg.termFontSize) fontSizeDesktop = cfg.termFontSize;
+      if (cfg.termFontSizeMobile) fontSizeMobile = cfg.termFontSizeMobile;
+      applyFontSize();
+      // Ap che do ban phim mobile (resize|input)
+      if (cfg.mobileKeyboardMode) mobileKeyboardMode = cfg.mobileKeyboardMode;
+      applyKeyboardMode();
       // Ap ngon ngu cho text tinh (data-i18n) + tieu de
       window.I18N.setLang(cfg.language || 'en');
       window.I18N.apply();
@@ -154,11 +217,32 @@
   });
 
   // === Resize ===
-  function handleResize() { fit.fit(); sendResize(); }
+  function handleResize() { applyFontSize(); applyKeyboardMode(); fit.fit(); sendResize(); }
   if (typeof ResizeObserver !== 'undefined') {
     new ResizeObserver(handleResize).observe(container);
   } else {
     window.addEventListener('resize', handleResize);
+  }
+
+  // === Ban phim ao mobile: thu nho trang theo vung hien thi con lai ===
+  // Khi ban phim ao bat len, visualViewport.height giam. Dat chieu cao trang
+  // (terminal-page) bang chieu cao do de header + terminal + thanh nut khit
+  // phia tren ban phim, khong bi che. Ap cho ca 2 che do (resize/input).
+  var pageEl = document.querySelector('.terminal-page');
+  function applyViewportHeight() {
+    if (!pageEl) return;
+    var vv = window.visualViewport;
+    if (vv && isMobile()) {
+      pageEl.style.height = vv.height + 'px';
+    } else {
+      pageEl.style.height = '';
+    }
+    fit.fit();
+    sendResize();
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', applyViewportHeight);
+    window.visualViewport.addEventListener('scroll', applyViewportHeight);
   }
 
   // === Thanh nut dieu khien ===
@@ -168,6 +252,8 @@
     esc: '\x1b',
     ctrlc: '\x03',
     tab: '\t',
+    up: '\x1b[A',
+    down: '\x1b[B',
     left: '\x1b[D',
     right: '\x1b[C'
   };
@@ -284,8 +370,21 @@
       var key = btn.dataset.key;
       if (key && KEY_MAP[key] !== undefined) {
         sendInput(KEY_MAP[key]);
-        term.focus();
+        focusActive();
       }
+    });
+  }
+
+  // === O nhap lieu mobile (che do mobileKeyboardMode='input') ===
+  // Go vao o nay roi Enter/Send: gui chuoi + xuong dong vao terminal, sau do
+  // xoa o de nhap tiep va giu focus (ban phim van mo).
+  if (inputBar) {
+    inputBar.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var val = inputBarField.value;
+      sendInput(val + '\r');
+      inputBarField.value = '';
+      inputBarField.focus();
     });
   }
 

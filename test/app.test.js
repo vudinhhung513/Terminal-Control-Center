@@ -19,6 +19,8 @@ const BASE_CONFIG = {
   tmuxPrefix: 'tcc',
   termFontFamily: 'monospace',
   termFontSize: 14,
+  termFontSizeMobile: 12,
+  mobileKeyboardMode: 'resize',
   termEncoding: 'utf-8',
   defaultPath: '',
   language: 'en',
@@ -147,6 +149,49 @@ describe('buildApp /api/settings', () => {
       body: JSON.stringify({ termFontSize: 999 })
     });
     assert.strictEqual(res.statusCode, 400);
+    await app.close();
+  });
+
+  it('PUT /api/settings + termFontSizeMobile khong hop le -> 400', async () => {
+    const app = await makeApp();
+    const { token, cookieStr } = await getCsrf(app);
+    const res = await app.inject({
+      method: 'PUT',
+      url: '/api/settings',
+      headers: {
+        'content-type': 'application/json',
+        'x-csrf-token': token,
+        cookie: cookieStr
+      },
+      body: JSON.stringify({ termFontSizeMobile: 999 })
+    });
+    assert.strictEqual(res.statusCode, 400);
+    await app.close();
+  });
+
+  it('PUT /api/settings + mobileKeyboardMode khong hop le -> 400', async () => {
+    const app = await makeApp();
+    const { token, cookieStr } = await getCsrf(app);
+    const res = await app.inject({
+      method: 'PUT',
+      url: '/api/settings',
+      headers: {
+        'content-type': 'application/json',
+        'x-csrf-token': token,
+        cookie: cookieStr
+      },
+      body: JSON.stringify({ mobileKeyboardMode: 'badmode' })
+    });
+    assert.strictEqual(res.statusCode, 400);
+    await app.close();
+  });
+
+  it('GET /api/settings tra termFontSizeMobile va mobileKeyboardMode', async () => {
+    const app = await makeApp();
+    const res = await app.inject({ method: 'GET', url: '/api/settings' });
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.termFontSizeMobile, 12);
+    assert.strictEqual(body.mobileKeyboardMode, 'resize');
     await app.close();
   });
 

@@ -40,6 +40,8 @@ function publicSettings(cfg) {
     tmuxPrefix: cfg.tmuxPrefix,
     termFontFamily: cfg.termFontFamily,
     termFontSize: cfg.termFontSize,
+    termFontSizeMobile: cfg.termFontSizeMobile,
+    mobileKeyboardMode: cfg.mobileKeyboardMode,
     termEncoding: cfg.termEncoding,
     language: cfg.language,
     loginRateLimit: cfg.loginRateLimit
@@ -122,6 +124,23 @@ async function settingsPlugin(fastify, opts) {
         return;
       }
       patch.termFontSize = fs;
+    }
+    if (body.termFontSizeMobile !== undefined) {
+      const fsm = Number(body.termFontSizeMobile);
+      if (!Number.isFinite(fsm) || fsm < 8 || fsm > 40) {
+        reply.code(400).send({ error: 'termFontSizeMobile must be 8..40' });
+        return;
+      }
+      patch.termFontSizeMobile = fsm;
+    }
+
+    // Che do ban phim mobile (resize|input)
+    if (body.mobileKeyboardMode !== undefined) {
+      if (body.mobileKeyboardMode !== 'resize' && body.mobileKeyboardMode !== 'input') {
+        reply.code(400).send({ error: 'mobileKeyboardMode must be resize or input' });
+        return;
+      }
+      patch.mobileKeyboardMode = body.mobileKeyboardMode;
     }
 
     // Bang ma terminal (phai duoc iconv-lite ho tro)

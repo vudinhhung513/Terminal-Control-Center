@@ -95,6 +95,8 @@ export async function buildApp(config, options = {}) {
       version,
       termFontFamily: config.termFontFamily,
       termFontSize: config.termFontSize,
+      termFontSizeMobile: config.termFontSizeMobile,
+      mobileKeyboardMode: config.mobileKeyboardMode,
       language: config.language,
       theme: config.theme,
       shells: config.shells,

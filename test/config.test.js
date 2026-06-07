@@ -28,6 +28,15 @@ describe('config DEFAULTS', () => {
     assert.strictEqual(DEFAULTS.defaultPath, '');
   });
 
+  it('termFontSizeMobile mac dinh la so trong 8..40', () => {
+    assert.strictEqual(typeof DEFAULTS.termFontSizeMobile, 'number');
+    assert.ok(DEFAULTS.termFontSizeMobile >= 8 && DEFAULTS.termFontSizeMobile <= 40);
+  });
+
+  it('mobileKeyboardMode mac dinh la resize', () => {
+    assert.strictEqual(DEFAULTS.mobileKeyboardMode, 'resize');
+  });
+
   it('tls mac dinh bat (enabled = true)', () => {
     assert.strictEqual(typeof DEFAULTS.tls, 'object');
     assert.strictEqual(DEFAULTS.tls.enabled, true);

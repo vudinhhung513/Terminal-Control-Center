@@ -1,6 +1,6 @@
 {
   "name": "terminal-control-center",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Web server quan ly cac phien terminal tren Ubuntu dua tren tmux",
   "type": "module",
   "main": "src/server.js",

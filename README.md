@@ -78,7 +78,9 @@ Chỉnh sửa file `config.json` (được tạo từ `config.example.json`):
 | `defaultPath` | Thư mục làm việc mặc định cho phiên mới (rỗng = mặc định tmux). Hỗ trợ `~`. Truyền qua `tmux new-session -c` | `""` |
 | `tmuxPrefix` | Tiền tố tên phiên tmux do TCC quản lý | `"tcc"` |
 | `termFontFamily` | Font chữ terminal (xterm.js) | `"monospace"` |
-| `termFontSize` | Cỡ chữ terminal (8–40) | `14` |
+| `termFontSize` | Cỡ chữ terminal trên **desktop** (8–40) | `14` |
+| `termFontSizeMobile` | Cỡ chữ terminal trên **mobile** (8–40). Client tự chọn theo bề rộng màn hình (≤640px = mobile) | `12` |
+| `mobileKeyboardMode` | Cách xử lý bàn phím ảo che terminal trên mobile: `resize` (thu nhỏ terminal cho vừa vùng hiển thị còn lại) hoặc `input` (hiện ô nhập liệu riêng phía trên bàn phím) | `"resize"` |
 | `termEncoding` | Bảng mã ký tự terminal (server transcode sang UTF-8). Vd: `utf-8`, `gbk`, `big5`, `euc-kr`, `tis-620` | `"utf-8"` |
 | `language` | Ngôn ngữ giao diện: `en` hoặc `vi` | `"en"` |
 | `loginRateLimit.enabled` | Bật giới hạn số lần đăng nhập (chống brute-force) | `true` |
@@ -98,7 +100,8 @@ Nhấn nút **⚙ Settings** trên dashboard để mở bảng cài đặt. Tạ
 
 - Bật/tắt **yêu cầu mật khẩu** khi truy cập và **đổi mật khẩu** (lưu dạng hash scrypt).
 - Cấu hình **Host** và **Port** (cần khởi động lại để áp dụng — xem bên dưới).
-- Đổi **font chữ** và **cỡ chữ** của terminal.
+- Đổi **font chữ** và **cỡ chữ** terminal — đặt riêng cỡ chữ cho **desktop** và **mobile**.
+- Chọn **chế độ bàn phím mobile** (`mobileKeyboardMode`): *Thu nhỏ terminal cho vừa* hoặc *Hiện ô nhập liệu* — đổi xong cần mở lại terminal.
 - Đặt **thư mục mặc định** cho phiên mới (`defaultPath`) — validate khi lưu: phải là đường dẫn tuyệt đối, tồn tại và là thư mục.
 - Chọn **bảng mã (encoding)** — đổi xong cần mở lại terminal.
 - Đổi **ngôn ngữ giao diện** (Anh/Việt) — áp dụng ngay.

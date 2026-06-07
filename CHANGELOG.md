@@ -5,6 +5,35 @@ Tất cả thay đổi đáng chú ý của dự án được ghi tại đây.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/),
 và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.6.0] - 2026-06-07
+
+### Added (Thêm mới)
+- **Ẩn thanh menu trình duyệt trên mobile (PWA)**: thêm `public/manifest.json`
+  (`display: fullscreen`, `display_override`) + các meta tag `mobile-web-app-capable`,
+  `apple-mobile-web-app-*`, `theme-color` vào `index.html` và `terminal.html`. Khi
+  "Add to Home Screen" và mở từ màn hình chính, app chạy không có thanh địa chỉ/menu
+  trình duyệt → tận dụng tối đa màn hình. Trong tab trình duyệt thường, layout dùng
+  `100dvh` (dynamic viewport height, fallback `100vh`) để khít đúng vùng hiển thị.
+- **Cỡ chữ riêng cho mobile và desktop**: thêm `config.termFontSizeMobile` (mặc định
+  `12`). Client tự chọn cỡ chữ theo bề rộng màn hình (≤640px = mobile), áp lại khi
+  xoay/đổi kích thước. Thêm field "Mobile font size" trong Settings; field cũ đổi
+  nhãn thành "Desktop font size".
+- **Nút mũi tên Lên/Xuống thật trong control bar**: thêm 2 nút `↑`/`↓` gửi đúng
+  escape sequence `\x1b[A` / `\x1b[B` (giống Trái/Phải), dùng được cho history
+  shell, vim, menu… (trước đây chỉ có nút cuộn tmux `▲▼`, không phải phím mũi tên).
+- **Xử lý bàn phím ảo che terminal trên mobile (`mobileKeyboardMode`)**: thêm config
+  với 2 chế độ — `resize` (mặc định): dùng `visualViewport` API thu nhỏ chiều cao
+  trang theo vùng hiển thị còn lại để header + terminal + thanh nút luôn nằm trên
+  bàn phím; `input`: hiện ô nhập liệu riêng phía trên bàn phím, tắt bàn phím ảo của
+  terminal (chạm terminal không bung bàn phím), gõ Enter/Send để gửi chuỗi + xuống
+  dòng. Thêm select "Mobile keyboard" trong Settings.
+- Các key i18n mới (EN+VI): `ctrl.up`, `ctrl.down`, `settings.fontSizeMobile`,
+  `settings.mobileKeyboard`, `settings.mobileKeyboardHint`,
+  `settings.mobileKeyboardResize`, `settings.mobileKeyboardInput`,
+  `input.placeholder`, `input.send`.
+- Test: validate `termFontSizeMobile`/`mobileKeyboardMode` (sai → 400), GET trả
+  field mới, `DEFAULTS.termFontSizeMobile` + `DEFAULTS.mobileKeyboardMode`.
+
 ## [1.5.0] - 2026-06-07
 
 ### Added (Thêm mới)
