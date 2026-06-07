@@ -5,6 +5,29 @@ Tất cả thay đổi đáng chú ý của dự án được ghi tại đây.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/),
 và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.5.0] - 2026-06-07
+
+### Added (Thêm mới)
+- **HTTPS/TLS qua IP (tự sinh cert)**: thêm `config.tls` (`enabled`, `keyPath`,
+  `certPath`). **Mặc định bật** (`tls.enabled: true`) — khi khởi động, nếu chưa có
+  cert, server **tự sinh chứng chỉ self-signed** (module `src/tls.js`): tự dò các
+  IPv4 của máy đưa vào trường SAN, lưu `data/tls/` (git-ignored) và **tự ghi
+  `keyPath`/`certPath` vào `config.json`** (không phải sửa tay, không phải chạy
+  lệnh). Nhờ HTTPS, trang thành *secure context* nên nút Paste tự đọc clipboard kể
+  cả qua `https://<IP>`. Đặt `tls.enabled: false` để chạy HTTP. `keyPath`/`certPath`
+  hỗ trợ tuyệt đối hoặc tương đối thư mục gốc; lỗi sinh/đọc cert (vd thiếu `openssl`)
+  thì server báo lỗi và thoát (không tự chạy lùi về HTTP).
+- **Script `generate-cert.sh`** (tuỳ chọn): sinh cert thủ công với IP/hostname tuỳ ý
+  khi cần (mặc định server đã tự sinh nên không bắt buộc dùng).
+- Test: `DEFAULTS.tls`; `src/tls.js` (`buildSanString`, `ensureCert` khi đã có file).
+
+### Changed (Thay đổi)
+- **Sửa Ctrl+Shift+V**: không còn tự gọi `pasteFromClipboard()` (gây thông báo
+  thừa trên HTTP và paste 2 lần trên HTTPS). Giờ để sự kiện `paste` gốc của trình
+  duyệt xử lý — đọc clipboard client, chạy được cả trên HTTP, không hiện hộp thoại.
+- **Lời nhắc nút Paste (HTTP)**: đổi thông báo nêu rõ "dán tự động cần HTTPS, đang
+  chạy HTTP nên trình duyệt chặn clipboard" thay vì thông báo lỗi mơ hồ.
+
 ## [1.4.0] - 2026-06-07
 
 ### Added (Thêm mới)

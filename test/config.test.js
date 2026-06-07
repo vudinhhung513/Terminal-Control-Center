@@ -27,4 +27,14 @@ describe('config DEFAULTS', () => {
   it('defaultPath mac dinh la chuoi rong', () => {
     assert.strictEqual(DEFAULTS.defaultPath, '');
   });
+
+  it('tls mac dinh bat (enabled = true)', () => {
+    assert.strictEqual(typeof DEFAULTS.tls, 'object');
+    assert.strictEqual(DEFAULTS.tls.enabled, true);
+  });
+
+  it('tls co keyPath/certPath la string', () => {
+    assert.strictEqual(typeof DEFAULTS.tls.keyPath, 'string');
+    assert.strictEqual(typeof DEFAULTS.tls.certPath, 'string');
+  });
 });

@@ -139,6 +139,20 @@
   // === Terminal input → gui len server ===
   term.onData(function (data) { sendInput(data); });
 
+  // === Phim tat copy/paste (chuan terminal Ubuntu: Ctrl+Shift+C/V) ===
+  // Tra ve false de xterm KHONG gui phim nay vao tmux (Ctrl+C van la ngat).
+  term.attachCustomKeyEventHandler(function (e) {
+    if (e.type !== 'keydown' || !e.ctrlKey || !e.shiftKey) return true;
+    var k = e.key.toLowerCase();
+    if (k === 'c') { copySelection(); return false; }
+    // Paste: tra ve false de xterm KHONG gui \x16 vao tmux, nhung su kien
+    // 'paste' goc cua trinh duyet van chay (doc clipboard CLIENT qua
+    // clipboardData, ho tro ca HTTP). Khong tu doc clipboard o day de tranh
+    // prompt thua tren HTTP va tranh paste 2 lan tren HTTPS.
+    if (k === 'v') { return false; }
+    return true;
+  });
+
   // === Resize ===
   function handleResize() { fit.fit(); sendResize(); }
   if (typeof ResizeObserver !== 'undefined') {
@@ -162,6 +176,78 @@
   function getCsrfToken() {
     var m = document.cookie.match(/(?:^|;\s*)tcc_csrf=([^;]+)/);
     return m ? decodeURIComponent(m[1]) : '';
+  }
+
+  // === Clipboard helpers (co fallback cho HTTP LAN) ===
+  // Luu y: navigator.clipboard chi ton tai trong secure context (HTTPS hoac
+  // localhost). Khi truy cap qua HTTP tren LAN/VPN thi no la undefined nen nut
+  // copy/paste "khong lam gi". Cac ham duoi co fallback de van hoat dong.
+
+  /** Hien thong bao ngan tren terminal (mau xam, khong gui vao tmux). */
+  function notify(msg) {
+    term.write('\r\n\x1b[2m' + msg + '\x1b[0m\r\n');
+  }
+
+  /**
+   * Sao chep text vao clipboard. Thu navigator.clipboard truoc, neu khong co
+   * thi fallback sang textarea + execCommand('copy').
+   * @param {string} text
+   * @returns {Promise<boolean>} true neu sao chep thanh cong
+   */
+  function copyToClipboard(text) {
+    if (window.navigator.clipboard && window.navigator.clipboard.writeText) {
+      return window.navigator.clipboard.writeText(text).then(function () { return true; })
+        .catch(function () { return execCopy(text); });
+    }
+    return Promise.resolve(execCopy(text));
+  }
+
+  /** Fallback copy bang textarea an + execCommand. */
+  function execCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Doc clipboard roi gui vao terminal. Thu navigator.clipboard truoc, neu
+   * khong co thi fallback hoi nguoi dung qua prompt (ho tu Ctrl+Shift+V/dan).
+   */
+  function pasteFromClipboard() {
+    if (window.navigator.clipboard && window.navigator.clipboard.readText) {
+      window.navigator.clipboard.readText()
+        .then(function (txt) { if (txt) sendInput(txt); })
+        .catch(function () { promptPaste(); });
+    } else {
+      promptPaste();
+    }
+    term.focus();
+  }
+
+  /** Fallback paste: hop thoai cho nguoi dung dan text thu cong. */
+  function promptPaste() {
+    var txt = window.prompt(t('ctrl.pastePrompt'), '');
+    if (txt) sendInput(txt);
+  }
+
+  /** Sao chep vung dang chon; bao trang thai len terminal. */
+  function copySelection() {
+    var sel = term.getSelection();
+    if (!sel) { notify(t('ctrl.copyEmpty')); term.focus(); return; }
+    copyToClipboard(sel).then(function (ok) {
+      if (ok) notify(t('ctrl.copyOk'));
+    });
+    term.focus();
   }
 
   /**
@@ -189,25 +275,10 @@
         return;
       }
 
-      // Nut copy/paste (clipboard API)
+      // Nut copy/paste (co fallback cho HTTP LAN)
       var action = btn.dataset.action;
-      if (action === 'copy') {
-        var sel = term.getSelection();
-        if (sel && window.navigator && window.navigator.clipboard) {
-          window.navigator.clipboard.writeText(sel).catch(function () {});
-        }
-        term.focus();
-        return;
-      }
-      if (action === 'paste') {
-        if (window.navigator && window.navigator.clipboard) {
-          window.navigator.clipboard.readText().then(function (txt) {
-            if (txt) sendInput(txt);
-          }).catch(function () {});
-        }
-        term.focus();
-        return;
-      }
+      if (action === 'copy') { copySelection(); return; }
+      if (action === 'paste') { pasteFromClipboard(); return; }
 
       // Nut gui phim
       var key = btn.dataset.key;

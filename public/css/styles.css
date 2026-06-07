@@ -400,23 +400,29 @@ html, body {
 .settings-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
 
 .settings-group {
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .settings-group legend {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--accent);
   padding: 0 6px;
+}
+
+/* Input trong Settings gon hon (thap hon mac dinh 44px) de tiet kiem chieu cao */
+.settings-form .input {
+  min-height: 34px;
+  padding: 4px 10px;
 }
 
 /* Title + input cung mot hang de tiet kiem dien tich. Label trai co dinh,
@@ -460,8 +466,15 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
+}
+
+/* Thong bao trong Settings: lien ke nut Save, gon hon message mac dinh */
+#msg-settings {
+  margin-bottom: 0;
+  margin-top: 4px;
+  padding: 8px 10px;
 }
 
 .settings-row input[type="checkbox"] {

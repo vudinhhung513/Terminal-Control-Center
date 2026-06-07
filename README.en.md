@@ -34,13 +34,13 @@ network connection won't interrupt running processes. Who it's for:
 - **Sessions outlive the browser** thanks to tmux — closing a tab keeps the session alive
 - **Rename, notes, last access time** per session for easy management
 - **Drag-and-drop ordering** of sessions (stored server-side)
-- **Terminal control bar**: scroll, Enter, ESC, Ctrl+C, Tab, arrow keys
+- **Terminal control bar**: scroll, Enter, ESC, Ctrl+C, Tab, arrow keys, copy/paste
 - **Character encoding config**: UTF-8, GBK, Big5, EUC-KR, Shift_JIS, TIS-620...
 - **Bilingual UI** English/Vietnamese (English by default, switch in Settings)
 - **Shell selection** when creating a session (configurable allowlist, default bash/zsh/sh/fish)
 - **Default path for new sessions** (`defaultPath`): new sessions start directly in that directory
 - **Light/Dark/Auto theme** — compact icon button on dashboard; Auto follows the OS
-- **Copy/Paste on mobile** (buttons on control bar, using navigator.clipboard)
+- **Copy/Paste** on both desktop and mobile: control-bar buttons + keyboard shortcuts **Ctrl+Shift+C / Ctrl+Shift+V** (Ubuntu terminal convention); includes a fallback so it still works over HTTP (LAN/VPN)
 - **Insecure config warnings** when sessionSecret is default or host is public without auth
 - **Authentication** toggle; scrypt-hashed password; brute-force protection
 - **Responsive** — works on desktop and mobile
@@ -86,6 +86,9 @@ Edit `config.json` (created from `config.example.json`):
 | `loginRateLimit.enabled` | Enable login attempt limiting (brute-force protection) | `true` |
 | `loginRateLimit.maxAttempts` | Max attempts within the time window | `5` |
 | `loginRateLimit.windowMs` | Time window length (ms) | `60000` |
+| `tls.enabled` | Enable HTTPS (secure context => Paste button auto-reads clipboard). Set `false` to run HTTP | `true` |
+| `tls.keyPath` | Path to PEM private key (absolute or relative to project root) | `"data/tls/key.pem"` |
+| `tls.certPath` | Path to PEM certificate (absolute or relative to project root) | `"data/tls/cert.pem"` |
 
 > Most settings above can be changed directly via the **⚙ Settings** button on the
 > dashboard (see [Settings UI](#settings-ui)). Session metadata (notes, order, last
@@ -119,6 +122,58 @@ after changing you must **reopen the terminal** (no server restart needed).
 The UI defaults to **English** and can be switched to **Vietnamese** in Settings.
 The choice is stored server-side so it applies across all devices. For the i18n
 conventions developers must follow: see [`docs/I18N.md`](./docs/I18N.md).
+
+### Copy / Paste & shortcuts
+
+In the terminal screen you can copy / paste two ways:
+
+- **Keyboard shortcuts** (Ubuntu terminal convention): **Ctrl+Shift+C** to copy
+  the current selection, **Ctrl+Shift+V** to paste. Note the `Shift` distinguishes
+  them from `Ctrl+C` (still the interrupt signal sent to the shell) and `Ctrl+V`.
+- **Control-bar buttons** (⧉ copy / ⎘ paste) — handy for touch/mobile devices.
+
+How it works:
+- **Ctrl+Shift+V** uses the browser's native `paste` event, reading the **client**
+  clipboard directly — it works even over **HTTP**, no HTTPS required.
+- The **Paste button** only auto-reads the clipboard in a **secure context** (HTTPS
+  or `localhost`). Over **HTTP** the browser blocks the clipboard API, so the button
+  opens a dialog for manual paste. To make the Paste button work automatically over
+  an IP, use HTTPS (see [HTTPS](#https--automatic-clipboard-over-ip)).
+- **Copy** prefers `navigator.clipboard` with an `execCommand('copy')` fallback, so it
+  always works, even over HTTP.
+
+### HTTPS / automatic clipboard over IP
+
+Browsers only enable the clipboard API in a **secure context** (`https://` or
+`localhost`). Over `http://<IP>` the Paste button cannot auto-read the clipboard.
+That is why **HTTPS is enabled by default** (`tls.enabled: true`).
+
+On startup, if no cert exists, the server **auto-generates a self-signed
+certificate**: it detects the machine's IPs into the SAN field, stores them in
+`data/tls/` (git-ignored), and writes `keyPath`/`certPath` back into `config.json`.
+**No manual command required.**
+
+Open `https://<IP>:<port>`. The browser will warn about an untrusted certificate
+(self-signed) the first time — click **Advanced → Proceed** once and the Paste
+button will auto-read the clipboard.
+
+To run over HTTP (disable TLS), set in `config.json`:
+
+```json
+{
+  "tls": {
+    "enabled": false
+  }
+}
+```
+
+> - The generated cert covers every IPv4 of the machine + `localhost`. If the IP
+>   changes or you add a hostname, delete `data/tls/*.pem` and restart to regenerate
+>   (or run `./generate-cert.sh <IP/hostname...>` to specify manually).
+> - `keyPath`/`certPath` may be absolute or relative to the project root.
+> - Cert generation needs `openssl`. If it is missing (or write permission fails)
+>   the server logs an error and exits (it does not silently fall back to HTTP) to
+>   avoid security confusion.
 
 ### Changing the port
 

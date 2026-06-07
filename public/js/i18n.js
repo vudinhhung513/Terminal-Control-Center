@@ -112,6 +112,9 @@
     // Copy/Paste (mobile control bar)
     'ctrl.copy': { en: 'Copy', vi: 'Sao chép' },
     'ctrl.paste': { en: 'Paste', vi: 'Dán' },
+    'ctrl.copyOk': { en: 'Copied', vi: 'Đã sao chép' },
+    'ctrl.copyEmpty': { en: 'Select text first', vi: 'Hãy bôi đen vùng cần sao chép' },
+    'ctrl.pastePrompt': { en: 'Auto-paste needs HTTPS — over HTTP the browser blocks clipboard access. Paste your text here then OK (or use Ctrl+Shift+V):', vi: 'Dán tự động cần HTTPS — đang chạy HTTP nên trình duyệt chặn đọc clipboard. Dán nội dung vào đây rồi bấm OK (hoặc dùng Ctrl+Shift+V):' },
 
     // Toolbar: chon shell
     'toolbar.shell': { en: 'Shell', vi: 'Shell' },

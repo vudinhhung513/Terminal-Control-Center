@@ -68,8 +68,6 @@
         <button id="btn-settings-close" class="btn btn--ghost btn--small" data-i18n-title="settings.close" aria-label="Close">&times;</button>
       </div>
 
-      <div id="msg-settings" class="message hidden"></div>
-
       <form id="settings-form" class="settings-form">
         <!-- Nhom: Bao mat / xac thuc -->
         <fieldset class="settings-group">
@@ -190,6 +188,9 @@
             <input id="set-current-password" class="input" type="password" autocomplete="current-password">
           </label>
         </fieldset>
+
+        <!-- Thong bao ket qua luu (dat ngay truoc nut Save de de thay) -->
+        <div id="msg-settings" class="message hidden"></div>
 
         <div class="modal__footer">
           <button type="button" id="btn-settings-cancel" class="btn btn--ghost" data-i18n="settings.cancel">Cancel</button>

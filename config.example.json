@@ -17,5 +17,10 @@
     "enabled": true,
     "maxAttempts": 5,
     "windowMs": 60000
+  },
+  "tls": {
+    "enabled": true,
+    "keyPath": "data/tls/key.pem",
+    "certPath": "data/tls/cert.pem"
   }
 }

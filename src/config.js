@@ -43,6 +43,17 @@ export const DEFAULTS = {
     enabled: true,
     maxAttempts: 5, // so lan thu toi da
     windowMs: 60000 // trong khoang thoi gian (ms)
+  },
+  // Cau hinh HTTPS/TLS. Mac dinh BAT de chay secure context => trinh duyet cho
+  // phep clipboard API (nut Paste tu doc clipboard) ke ca khi truy cap qua IP.
+  // Dat 'enabled: false' trong config.json de tat (chay HTTP).
+  // keyPath/certPath la duong dan toi private key va certificate (PEM); de rong
+  // thi dung path mac dinh ben duoi va server tu sinh cert self-signed neu chua co.
+  // Co the dung tuyet doi hoac tuong doi so voi thu muc goc du an.
+  tls: {
+    enabled: true,
+    keyPath: 'data/tls/key.pem',
+    certPath: 'data/tls/cert.pem'
   }
 };
 
@@ -109,6 +120,17 @@ function normalize(cfg) {
   }
   if (!Number.isInteger(c.loginRateLimit.windowMs) || c.loginRateLimit.windowMs < 1000) {
     c.loginRateLimit.windowMs = DEFAULTS.loginRateLimit.windowMs;
+  }
+
+  // Merge sau cho tls; chuan hoa kieu du lieu
+  c.tls = { ...DEFAULTS.tls, ...(cfg.tls || {}) };
+  c.tls.enabled = c.tls.enabled === true;
+  // Path rong/sai kieu => dung path mac dinh (server tu sinh cert tai do)
+  if (typeof c.tls.keyPath !== 'string' || !c.tls.keyPath.trim()) {
+    c.tls.keyPath = DEFAULTS.tls.keyPath;
+  }
+  if (typeof c.tls.certPath !== 'string' || !c.tls.certPath.trim()) {
+    c.tls.certPath = DEFAULTS.tls.certPath;
   }
 
   return c;
