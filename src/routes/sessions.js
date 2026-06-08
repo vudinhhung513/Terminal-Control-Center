@@ -5,6 +5,7 @@
 import { listSessions, createSession, killSession, hasSession, validateName } from '../tmux.js';
 import { requireAuth, requireCsrf } from '../auth.js';
 import * as meta from '../meta-store.js';
+import { ensureLogging, stopLogging } from '../session-logger.js';
 
 /**
  * Fastify plugin dang ky cac route sessions.
@@ -61,6 +62,8 @@ async function sessionsPlugin(fastify, opts) {
 
     try {
       const createdName = await createSession(name || undefined, config, shell || undefined);
+      // Bat ghi log ngay khi tao (khong cho client ket noi WS)
+      ensureLogging(createdName).catch(() => { /* loi log -> bo qua */ });
       reply.code(201).send({ name: createdName });
     } catch (err) {
       // Truong hop loi tu tmux (vd: phien da ton tai do race condition)
@@ -91,6 +94,7 @@ async function sessionsPlugin(fastify, opts) {
     try {
       await killSession(name);
       meta.remove(name); // don dep metadata kem theo
+      stopLogging(name).catch(() => { /* loi tmux -> bo qua */ });
       return { ok: true };
     } catch (err) {
       reply.code(500).send({ error: err.message });

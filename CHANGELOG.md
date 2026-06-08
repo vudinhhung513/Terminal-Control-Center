@@ -5,6 +5,121 @@ Tất cả thay đổi đáng chú ý của dự án được ghi tại đây.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/),
 và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.11.0] - 2026-06-09
+
+### Added (Thêm mới)
+- **Khoá/cướp phiên khi mở ở thiết bị khác** (`multiDeviceMode`, mặc định
+  `takeover`): khi một phiên đang được dùng ở thiết bị khác (dashboard báo
+  *attached*):
+  - `takeover` — thiết bị mới cướp quyền, thiết bị cũ bị ngắt (close code 4001)
+    rồi tmux detach nốt client khác qua `attach-session -d`. Thiết bị cũ hiện
+    overlay báo bị ngắt + nút *Kết nối lại* (bấm sẽ giành lại quyền).
+  - `lock` — chặn thiết bị mới (close code 4002) nếu phiên đang attached; thiết
+    bị mới báo lỗi và không tự reconnect.
+  - Backend: `ws-session.js` giữ registry `activeClients`; `tmux.js` thêm
+    `isAttached`. `config.js`/`routes/settings.js`/`app.js` thêm field + validate.
+  - UI: thêm nhóm *Truy cập đa thiết bị* trong Settings (chọn takeover/lock).
+
+### Changed (Thay đổi)
+- **Nút bật/tắt ô nhập liệu chuyển về đầu control bar** và **chỉ điều khiển bằng
+  nút** (không còn phụ thuộc config): ô nhập mặc định ẩn, người dùng bấm `⌨` để
+  bật/tắt lúc chạy. Bỏ 2 setting `mobileKeyboardMode` và `desktopInputBar` khỏi
+  cấu hình + panel Settings.
+- **Cập nhật link tới phiên bản Windows** trong toàn bộ tài liệu, trỏ về repo
+  [Windows-Terminal-Control-Center](https://github.com/vudinhhung513/Windows-Terminal-Control-Center).
+
+### Removed (Loại bỏ)
+- Field cấu hình `mobileKeyboardMode` và `desktopInputBar` (thay bằng nút toggle
+  runtime trên control bar).
+
+## [1.10.0] - 2026-06-08
+
+### Added (Thêm mới)
+- **Nút bật/tắt ô nhập liệu ngay trên cửa sổ terminal** (cả mobile lẫn desktop):
+  thêm nút `⌨` trên control bar. Trạng thái mặc định lấy từ config (mobile
+  `mobileKeyboardMode='input'` hoặc `desktopInputBar`), người dùng có thể bấm để
+  bật/tắt ô nhập lúc chạy mà không cần vào Settings. Nút sáng khi ô đang hiện.
+- **Kết hợp Ctrl/Shift với phím đặc biệt trên control bar** (combo): các nút Tab,
+  ESC, Enter và mũi tên giờ áp được phím bổ trợ "dính" Ctrl/Shift. Theo chuẩn
+  xterm: mũi tên → `\x1b[1;{m}{A|B|C|D}` (vd Ctrl+→ nhảy từ trong bash), Shift+Tab
+  → `\x1b[Z` (back-tab), Ctrl+Enter → `\n` (LF). Bổ trợ tự tắt sau khi gửi.
+
+### Changed (Thay đổi)
+- **Nút Tab trên control bar hiển thị chữ "Tab"** thay cho icon `⇥` (rõ ràng hơn).
+- **Đổi tên phiên giờ đổi cả tên file log** cho khớp: `data/logs/<phiên>.log` được
+  di chuyển sang tên mới (giữ lịch sử), stream raw cũ bị xoá và ghi log tiếp tục
+  dưới tên mới. Tránh log mồ côi sau khi rename.
+
+## [1.9.0] - 2026-06-08
+
+### Added (Thêm mới)
+- **Xem & quản lý log terminal** (modal "Logs" trên dashboard): nút `📄 Logs` ở
+  header **chỉ hiện khi logging đang bật** (`logging.mode != off`). Modal cho phép:
+  - **Liệt kê** các file log (`data/logs/<phiên>.log`) kèm kích thước + thời điểm
+    sửa cuối, sắp xếp mới nhất trước.
+  - **Xem** nội dung từng log ở chế độ **read-only** (không sửa).
+  - **Xoá** từng file log (có xác nhận).
+  - Backend: `session-logger.js` thêm `listLogs`/`readLog`/`deleteLog` (validate
+    tên chống path traversal); route mới `src/routes/logs.js`
+    (`GET /api/logs`, `GET /api/logs/:name`, `DELETE /api/logs/:name` — auth +
+    CSRF cho DELETE; **không có route sửa**). `GET /api/config` trả thêm
+    `loggingMode` để client ẩn/hiện nút Logs.
+- **Nút Ctrl/Shift "dính" (sticky) trên control bar terminal**: thêm 2 nút cạnh
+  Tab. Bấm một lần để áp cho **ký tự kế tiếp** (mô phỏng sticky-key cho thiết bị
+  không có phím cứng): vd bấm `Ctrl` rồi `c` → gửi `^C`. Nút sáng lên khi đang
+  bật, tự tắt sau khi áp một ký tự. Hoạt động cả khi gõ thẳng vào terminal lẫn ô
+  nhập liệu (khi ô trống).
+
+### Changed (Thay đổi)
+- **Ô nhập liệu (mobile + desktop) khi TRỐNG gửi phím điều khiển thẳng vào
+  terminal**: Enter chạy lệnh, Backspace xoá lùi, Delete xoá tới — thay vì chỉ
+  soạn trong ô. Khi ô **có text** vẫn giữ hành vi cũ (Enter chèn cả đoạn không kèm
+  Enter, Backspace/Delete sửa nội dung ô). Giúp dùng ô nhập như một bàn phím thật
+  mà không cần với tay lên control bar.
+- **Control bar terminal: chuyển nút Enter (⏎) xuống cuối hàng** (trước nằm đầu),
+  hợp lý hơn với luồng "soạn xong rồi Enter".
+
+### Fixed (Sửa lỗi)
+- **Gõ tiếng Việt (Unikey) trên Chrome/Windows bị lệch/nhân đôi ký tự có dấu**
+  (vd gõ "cộng" hiện `c→co→coô→coôn→coông→coôộng`): nguyên nhân gốc là lớp xử lý
+  IME composition tự thêm ở 1.8.0 **chạy chồng** với `CompositionHelper` sẵn có
+  của xterm.js trên cùng `<textarea>` (gửi đôi/sai thứ tự do cờ `isComposing` +
+  `setTimeout` bất đồng bộ). Đã **gỡ bỏ lớp custom** đó, giao hẳn việc xử lý IME
+  cho xterm.js (chỉ emit chuỗi đã hoàn chỉnh một lần). Ô nhập liệu riêng vẫn là
+  đường dự phòng chắc chắn.
+
+### Removed (Gỡ bỏ)
+- **Bỏ nút "↻ Refresh"** trên header dashboard (danh sách phiên vẫn tự làm mới mỗi
+  5 giây). Gỡ key i18n `btn.refresh`.
+
+## [1.8.0] - 2026-06-08
+
+### Added (Thêm mới)
+- **Ghi log terminal ra file** (`config.logging`): đọc trực tiếp luồng pane qua
+  `tmux pipe-pane` (độc lập với client WebSocket, không log trùng khi nhiều
+  client). Cấu hình trong Settings:
+  - **Mức độ log** (`logging.mode`): `off` (mặc định, tắt) | `input` (chỉ dòng
+    lệnh, best-effort lọc theo dấu prompt) | `full` (cả input + output, đã strip
+    mã ANSI). Mỗi dòng kèm timestamp ISO.
+  - **Số ngày lưu** (`logging.retentionDays`, mặc định 7): log của phiên bị xoá
+    khi quá số ngày tính từ lần active cuối (`lastAccess` trong metadata, fallback
+    mtime file). Dọn lúc khởi động + định kỳ mỗi 6 giờ.
+  - Log lưu tại `data/logs/<phiên>.log` (đã git-ignore qua `data/`).
+  - **Cảnh báo bảo mật** hiển thị trong Settings: bật log có thể ghi lại mật khẩu
+    gõ ở prompt (sudo/ssh). Mặc định tắt.
+  - Module mới `src/session-logger.js`; `tmux.js` thêm `startPipePane`/`stopPipePane`.
+- **Ô nhập liệu desktop** (`config.desktopInputBar`, mặc định tắt): dự phòng cho
+  bộ gõ IME như Unikey trên desktop — gõ vào ô `<input>` HTML thật rồi chèn vào
+  terminal (không kèm Enter), giữ terminal vẫn tương tác được.
+
+### Fixed (Sửa lỗi)
+- **Gõ tiếng Việt (Unikey) trên Chrome/Windows bị lệch vị trí ký tự**: ký tự có
+  dấu khi bị bộ gõ thay thế bị "nhảy" về đầu dòng (vd gõ "cộng" hiện sai thứ tự).
+  Thêm xử lý IME composition trong `terminal.js`: khi đang compose KHÔNG gửi
+  keystroke trung gian, chỉ gửi chuỗi hoàn chỉnh một lần khi `compositionend`.
+  Đây là xử lý best-effort; ô nhập desktop ở trên là đường dự phòng chắc chắn khi
+  bộ gõ vẫn lỗi.
+
 ## [1.7.0] - 2026-06-07
 
 ### Changed (Thay đổi)
@@ -156,7 +271,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 ### Notes (Ghi chú)
 - **macOS**: script launchd đã thêm nhưng chưa kiểm thử thực tế trên phần cứng
   macOS — cần cộng đồng xác nhận.
-- **Windows**: sẽ triển khai ở repo riêng (kiến trúc khác biệt, không có tmux).
+- **Windows**: sẽ triển khai ở [repo riêng](https://github.com/vudinhhung513/Windows-Terminal-Control-Center) (kiến trúc khác biệt, không có tmux).
 
 ## [1.2.0] - 2026-06-06
 

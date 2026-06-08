@@ -14,6 +14,7 @@ import authPlugin, { isAuthed, registerCsrfCookie } from './auth.js';
 import sessionsPlugin from './routes/sessions.js';
 import metaPlugin from './routes/meta.js';
 import settingsPlugin from './routes/settings.js';
+import logsPlugin from './routes/logs.js';
 import wsSessionPlugin from './ws-session.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -96,10 +97,12 @@ export async function buildApp(config, options = {}) {
       termFontFamily: config.termFontFamily,
       termFontSize: config.termFontSize,
       termFontSizeMobile: config.termFontSizeMobile,
-      mobileKeyboardMode: config.mobileKeyboardMode,
+      multiDeviceMode: config.multiDeviceMode,
       language: config.language,
       theme: config.theme,
       shells: config.shells,
+      // Che do log hien tai (client dung de an/hien nut Logs tren dashboard)
+      loggingMode: config.logging?.mode || 'off',
       warnings: computeWarnings(config)
     };
   });
@@ -108,6 +111,7 @@ export async function buildApp(config, options = {}) {
   await app.register(sessionsPlugin, { config });
   await app.register(metaPlugin, { config });
   await app.register(settingsPlugin, { config });
+  await app.register(logsPlugin, { config });
   await app.register(wsSessionPlugin, { config });
 
   return app;

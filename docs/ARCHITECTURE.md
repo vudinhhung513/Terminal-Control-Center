@@ -6,7 +6,7 @@
 ## 1. Tổng quan
 
 TCC là web server quản lý các phiên **tmux** qua trình duyệt (hỗ trợ Linux; macOS
-có script launchd nhưng chưa kiểm thử; Windows sẽ ở repo riêng). Người dùng
+có script launchd nhưng chưa kiểm thử; Windows ở [repo riêng](https://github.com/vudinhhung513/Windows-Terminal-Control-Center)). Người dùng
 tạo/đóng/đổi tên phiên, mở web terminal realtime, và cấu hình ứng dụng qua giao
 diện. Truy cập local hoặc từ xa (kết hợp VPN/Tailscale/SSH tunnel).
 

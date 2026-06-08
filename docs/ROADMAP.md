@@ -40,7 +40,7 @@ gắn với **tmux** (`src/tmux.js`) và `node-pty`.
   `uninstall-service-macos.sh`). Code lõi (tmux + node-pty) chạy được trên macOS,
   shell mặc định là `zsh`. **CHƯA kiểm thử thực tế (untested)** — cần người dùng
   macOS xác nhận.
-- **Windows** — sẽ triển khai ở **repo riêng** (`<link sẽ cập nhật>`).
+- **Windows** — sẽ triển khai ở **repo riêng** ([Windows-Terminal-Control-Center](https://github.com/vudinhhung513/Windows-Terminal-Control-Center)).
   Hướng tiếp cận: nhúng phiên cmd/PowerShell qua **ConPTY** (tương tự cách VS Code
   nhúng terminal — dùng Node.js + node-pty + ConPTY, hoặc C#; quyết định khi mở
   repo). **Rào cản kiến trúc:** Windows native không có cơ chế detach/attach phiên

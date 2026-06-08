@@ -12,8 +12,12 @@
   "termFontFamily": "monospace",
   "termFontSize": 14,
   "termFontSizeMobile": 12,
-  "mobileKeyboardMode": "input",
   "termEncoding": "utf-8",
+  "multiDeviceMode": "takeover",
+  "logging": {
+    "mode": "off",
+    "retentionDays": 7
+  },
   "language": "en",
   "loginRateLimit": {
     "enabled": true,

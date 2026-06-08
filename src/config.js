@@ -34,17 +34,23 @@ export const DEFAULTS = {
   // Co chu mac dinh cho desktop va mobile (client tu chon theo kich thuoc man hinh)
   termFontSize: 14,
   termFontSizeMobile: 12,
-  // Cach xu ly ban phim ao tren mobile (tranh che terminal):
-  // 'input'  = (mac dinh) hien o nhap lieu rieng phia tren ban phim. Go vao o
-  //            HTML that nen IME (vd tieng Viet tren iPhone) hoat dong dung;
-  //            bam nut gui chi CHEN text vao terminal, khong kem Enter.
-  // 'resize' = thu nho terminal theo vung hien thi con lai (go truc tiep vao
-  //            terminal — IME tieng Viet co the khong hoat dong tren iOS).
-  mobileKeyboardMode: 'input',
   // Bang ma ky tu cua terminal. xterm.js chi hieu UTF-8 nen server se
   // transcode tu bang ma nay sang UTF-8 (va nguoc lai) qua iconv-lite.
   // Vi du: 'utf-8', 'gbk', 'big5', 'euc-kr', 'tis-620', 'shift_jis'.
   termEncoding: 'utf-8',
+  // Xu ly khi mo mot phien dang duoc dung o thiet bi khac (attached):
+  // 'takeover' = (mac dinh) thiet bi moi cuop quyen, thiet bi cu bi ngat ra.
+  // 'lock'     = chan thiet bi moi, giu phien o thiet bi dang dung.
+  multiDeviceMode: 'takeover',
+  // Cau hinh ghi log noi dung terminal ra file (data/logs/<phien>.log).
+  // mode: 'off' (mac dinh, tat) | 'input' (chi cac dong lenh da Enter) |
+  //       'full' (ca input lan output, da strip ma ANSI).
+  // CANH BAO: che do 'input'/'full' co the ghi lai mat khau go o prompt
+  // (sudo/ssh...). retentionDays = so ngay giu log tinh tu lan active cuoi.
+  logging: {
+    mode: 'off',
+    retentionDays: 7
+  },
   // Ngon ngu giao dien: 'en' (mac dinh) hoac 'vi'.
   language: 'en',
   // Cau hinh chong brute-force dang nhap (rate-limit)
@@ -92,14 +98,23 @@ function normalize(cfg) {
     c.termFontSizeMobile = DEFAULTS.termFontSizeMobile;
   }
 
-  // Che do ban phim mobile chi cho phep 'resize' hoac 'input'
-  if (c.mobileKeyboardMode !== 'resize' && c.mobileKeyboardMode !== 'input') {
-    c.mobileKeyboardMode = DEFAULTS.mobileKeyboardMode;
-  }
-
   // Bang ma phai duoc iconv-lite ho tro, nguoc lai dung mac dinh
   if (typeof c.termEncoding !== 'string' || !iconv.encodingExists(c.termEncoding)) {
     c.termEncoding = DEFAULTS.termEncoding;
+  }
+
+  // Che do da thiet bi chi cho phep 'takeover' hoac 'lock'
+  if (c.multiDeviceMode !== 'takeover' && c.multiDeviceMode !== 'lock') {
+    c.multiDeviceMode = DEFAULTS.multiDeviceMode;
+  }
+
+  // Merge sau cho logging; chuan hoa mode + retentionDays
+  c.logging = { ...DEFAULTS.logging, ...(cfg.logging || {}) };
+  if (c.logging.mode !== 'off' && c.logging.mode !== 'input' && c.logging.mode !== 'full') {
+    c.logging.mode = DEFAULTS.logging.mode;
+  }
+  if (!Number.isInteger(c.logging.retentionDays) || c.logging.retentionDays < 1) {
+    c.logging.retentionDays = DEFAULTS.logging.retentionDays;
   }
 
   // Ngon ngu chi cho phep 'en' hoac 'vi'

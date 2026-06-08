@@ -13,6 +13,7 @@ import { saveConfig, getConfig } from '../config.js';
 import { hashPassword, verifyPassword } from '../password.js';
 import { requireAuth, requireCsrf } from '../auth.js';
 import { expandHome } from '../tmux.js';
+import { applyLoggingToAll } from '../session-logger.js';
 import { statSync } from 'node:fs';
 import { isAbsolute } from 'node:path';
 import iconv from 'iconv-lite';
@@ -41,8 +42,9 @@ function publicSettings(cfg) {
     termFontFamily: cfg.termFontFamily,
     termFontSize: cfg.termFontSize,
     termFontSizeMobile: cfg.termFontSizeMobile,
-    mobileKeyboardMode: cfg.mobileKeyboardMode,
     termEncoding: cfg.termEncoding,
+    multiDeviceMode: cfg.multiDeviceMode,
+    logging: cfg.logging,
     language: cfg.language,
     loginRateLimit: cfg.loginRateLimit
   };
@@ -134,15 +136,6 @@ async function settingsPlugin(fastify, opts) {
       patch.termFontSizeMobile = fsm;
     }
 
-    // Che do ban phim mobile (resize|input)
-    if (body.mobileKeyboardMode !== undefined) {
-      if (body.mobileKeyboardMode !== 'resize' && body.mobileKeyboardMode !== 'input') {
-        reply.code(400).send({ error: 'mobileKeyboardMode must be resize or input' });
-        return;
-      }
-      patch.mobileKeyboardMode = body.mobileKeyboardMode;
-    }
-
     // Bang ma terminal (phai duoc iconv-lite ho tro)
     if (typeof body.termEncoding === 'string' && body.termEncoding.trim()) {
       const enc = body.termEncoding.trim();
@@ -151,6 +144,36 @@ async function settingsPlugin(fastify, opts) {
         return;
       }
       patch.termEncoding = enc;
+    }
+
+    // Che do da thiet bi (takeover|lock)
+    if (body.multiDeviceMode !== undefined) {
+      if (body.multiDeviceMode !== 'takeover' && body.multiDeviceMode !== 'lock') {
+        reply.code(400).send({ error: 'multiDeviceMode must be takeover or lock' });
+        return;
+      }
+      patch.multiDeviceMode = body.multiDeviceMode;
+    }
+
+    // Ghi log terminal: mode (off|input|full) + retentionDays (>=1)
+    if (body.logging && typeof body.logging === 'object') {
+      const lg = { ...cfg.logging };
+      if (body.logging.mode !== undefined) {
+        if (!['off', 'input', 'full'].includes(body.logging.mode)) {
+          reply.code(400).send({ error: 'logging.mode must be off, input or full' });
+          return;
+        }
+        lg.mode = body.logging.mode;
+      }
+      if (body.logging.retentionDays !== undefined) {
+        const rd = Number(body.logging.retentionDays);
+        if (!Number.isInteger(rd) || rd < 1) {
+          reply.code(400).send({ error: 'logging.retentionDays must be an integer >= 1' });
+          return;
+        }
+        lg.retentionDays = rd;
+      }
+      patch.logging = lg;
     }
 
     // Ngon ngu giao dien (en|vi)
@@ -216,8 +239,17 @@ async function settingsPlugin(fastify, opts) {
       (patch.port !== undefined && patch.port !== cfg.port) ||
       (patch.host !== undefined && patch.host !== cfg.host);
 
+    // Phat hien co doi che do logging (de ap dung cho phien dang chay)
+    const loggingModeChanged =
+      patch.logging !== undefined && patch.logging.mode !== cfg.logging.mode;
+
     // Ghi config (hieu luc ngay cho cac field khong can restart)
     saveConfig(patch);
+
+    // Doi che do log -> bat/tat pipe-pane cho cac phien dang chay
+    if (loggingModeChanged) {
+      applyLoggingToAll().catch(() => { /* loi tmux -> bo qua */ });
+    }
 
     const underSystemd = isUnderSystemd();
 

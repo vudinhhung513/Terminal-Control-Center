@@ -33,8 +33,18 @@ describe('config DEFAULTS', () => {
     assert.ok(DEFAULTS.termFontSizeMobile >= 8 && DEFAULTS.termFontSizeMobile <= 40);
   });
 
-  it('mobileKeyboardMode mac dinh la input', () => {
-    assert.strictEqual(DEFAULTS.mobileKeyboardMode, 'input');
+  it('multiDeviceMode mac dinh la takeover', () => {
+    assert.strictEqual(DEFAULTS.multiDeviceMode, 'takeover');
+  });
+
+  it('logging mac dinh tat (mode off)', () => {
+    assert.strictEqual(typeof DEFAULTS.logging, 'object');
+    assert.strictEqual(DEFAULTS.logging.mode, 'off');
+  });
+
+  it('logging.retentionDays mac dinh la so nguyen >= 1', () => {
+    assert.ok(Number.isInteger(DEFAULTS.logging.retentionDays));
+    assert.ok(DEFAULTS.logging.retentionDays >= 1);
   });
 
   it('tls mac dinh bat (enabled = true)', () => {

@@ -33,7 +33,7 @@ network connection won't interrupt running processes. Who it's for:
 
 > **Cross-platform:** a **Linux build** is available today. **macOS** has install
 > scripts (launchd) but is **untested**. **Windows** will be developed in a
-> separate repository (`<link to be updated>`). See [Roadmap](./docs/ROADMAP.md).
+> separate repository ([Windows-Terminal-Control-Center](https://github.com/vudinhhung513/Windows-Terminal-Control-Center)). See [Roadmap](./docs/ROADMAP.md).
 
 ## Features
 
@@ -92,8 +92,10 @@ Edit `config.json` (created from `config.example.json`):
 | `termFontFamily` | Terminal font family (xterm.js) | `"monospace"` |
 | `termFontSize` | Terminal font size on **desktop** (8–40) | `14` |
 | `termFontSizeMobile` | Terminal font size on **mobile** (8–40). Client picks by screen width (≤640px = mobile) | `12` |
-| `mobileKeyboardMode` | How to handle the on-screen keyboard on mobile: `input` (**default**) shows a dedicated input box above the keyboard — compose a whole passage then **insert** it into the terminal (no trailing Enter), lets you type Vietnamese on iPhone; `resize` shrinks the terminal to fit the remaining viewport (type directly, Vietnamese IME may not work on iOS) | `"input"` |
 | `termEncoding` | Terminal character encoding (server transcodes to UTF-8). E.g. `utf-8`, `gbk`, `big5`, `euc-kr`, `tis-620` | `"utf-8"` |
+| `multiDeviceMode` | What happens when a session is opened while in use on another device (dashboard shows *attached*): `takeover` (**default**) the new device takes over and the old one is disconnected; `lock` blocks the new device, keeping the session on the device in use | `"takeover"` |
+| `logging.mode` | Terminal logging: `off` / `input` (commands only, best-effort) / `full` (input + output, ANSI stripped). **Warning:** may record passwords typed at prompts | `"off"` |
+| `logging.retentionDays` | Days to keep logs (since the session's last active time); expired logs are auto-deleted | `7` |
 | `language` | UI language: `en` or `vi` | `"en"` |
 | `loginRateLimit.enabled` | Enable login attempt limiting (brute-force protection) | `true` |
 | `loginRateLimit.maxAttempts` | Max attempts within the time window | `5` |
@@ -113,9 +115,10 @@ Click the **⚙ Settings** button on the dashboard to open the settings panel. T
 - Toggle **require password** on access and **change the password** (stored as scrypt hash).
 - Configure **Host** and **Port** (requires restart to apply — see below).
 - Change terminal **font family** and **font size** — set separate sizes for **desktop** and **mobile**.
-- Choose the **mobile keyboard mode** (`mobileKeyboardMode`): *Show input box* (default — compose then insert into the terminal, no trailing Enter) or *Shrink terminal to fit* — reopen the terminal after changing.
-- Set the **default path** for new sessions (`defaultPath`) — validated on save: must be an absolute, existing directory.
 - Select **character encoding** — reopen the terminal after changing.
+- Choose **multi-device access** (`multiDeviceMode`): *Take over* (default — a new device opening the session disconnects the old one) or *Lock* (block the new device while the session is in use elsewhere).
+- Set the **default path** for new sessions (`defaultPath`) — validated on save: must be an absolute, existing directory.
+- Configure **terminal logging** (`logging`): level (Off / Input only / Full) and retention days. **Warning:** logging may record passwords typed at prompts; logs are stored under `data/logs/`.
 - Switch **UI language** (English/Vietnamese) — applied immediately.
 - Switch **theme** (Dark/Light/Auto) — there is also a compact icon button on the dashboard that cycles through them.
 - Adjust login **brute-force protection** parameters (max attempts, time window).

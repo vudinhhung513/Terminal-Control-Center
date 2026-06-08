@@ -200,3 +200,52 @@ export async function hasSession(name) {
     return false;
   }
 }
+
+/**
+ * Kiem tra phien tmux co dang duoc client nao attach khong (web hoac terminal
+ * that). Dung de quyet dinh khoa/cuop phien khi mo o thiet bi khac.
+ * @param {string} name
+ * @returns {Promise<boolean>}
+ */
+export async function isAttached(name) {
+  if (!validateName(name)) {
+    throw new Error(`Invalid session name: ${name}`);
+  }
+  try {
+    const { stdout } = await execFileAsync('tmux', [
+      'display-message', '-p', '-t', name, '#{session_attached}'
+    ]);
+    return Number(stdout.trim()) > 0;
+  } catch {
+    // Phien khong ton tai hoac loi tmux -> coi nhu khong attach
+    return false;
+  }
+}
+
+/**
+ * Bat pipe-pane: chuyen huong output cua pane active trong phien sang file raw.
+ * Dung de ghi log noi dung terminal. Goi lai nhieu lan an toan (tmux thay the
+ * pipe cu). Ten phien da validate nen rawPath an toan khi nhung vao lenh shell.
+ * @param {string} name - ten phien tmux
+ * @param {string} rawPath - duong dan file raw (se duoc append)
+ */
+export async function startPipePane(name, rawPath) {
+  if (!validateName(name)) {
+    throw new Error(`Invalid session name: ${name}`);
+  }
+  // shell-command duoc tmux chay qua /bin/sh -c; single-quote path va escape '
+  const safePath = `'${String(rawPath).replace(/'/g, `'\\''`)}'`;
+  await execFileAsync('tmux', ['pipe-pane', '-t', name, `cat >> ${safePath}`]);
+}
+
+/**
+ * Tat pipe-pane cho phien (dung ghi log).
+ * @param {string} name
+ */
+export async function stopPipePane(name) {
+  if (!validateName(name)) {
+    throw new Error(`Invalid session name: ${name}`);
+  }
+  // Goi pipe-pane khong kem shell-command => dong pipe hien tai
+  await execFileAsync('tmux', ['pipe-pane', '-t', name]);
+}

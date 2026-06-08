@@ -37,8 +37,10 @@
   var fontSizeDesktop = 14;
   var fontSizeMobile = 12;
 
-  // Che do ban phim mobile: 'resize' (thu nho terminal) | 'input' (o nhap rieng)
-  var mobileKeyboardMode = 'resize';
+  // Trang thai hien/an o nhap lieu luc chay (runtime). Mac dinh an; nguoi dung
+  // bat/tat bang nut toggle tren control bar. La nguon duy nhat quyet dinh o
+  // nhap co hien khong (khong con phu thuoc config).
+  var inputVisible = false;
 
   /** Ap font size phu hop voi kich thuoc man hinh hien tai. */
   function applyFontSize() {
@@ -49,18 +51,20 @@
   }
 
   /**
-   * Ap che do ban phim mobile:
-   * - 'input': hien o nhap lieu rieng + tat ban phim ao cua terminal (tranh
-   *   terminal chiem focus va tranh ban phim che noi dung).
-   * - 'resize': an o nhap, go truc tiep vao terminal (chieu cao trang da duoc
-   *   thu nho theo visualViewport o ham applyViewportHeight).
+   * Ap che do o nhap theo trang thai runtime `inputVisible`:
+   * - mobile + hien: hien o nhap + tat ban phim ao cua terminal (tranh terminal
+   *   chiem focus va tranh ban phim che noi dung).
+   * - mobile + an: go truc tiep vao terminal (chieu cao trang da thu nho theo
+   *   visualViewport o ham applyViewportHeight).
+   * - desktop + hien: hien o nhap rieng (du phong IME nhu Unikey) nhung GIU
+   *   terminal tuong tac duoc (con phim cung de dung Ctrl+C, cuon...).
    */
   function applyKeyboardMode() {
-    var useInput = isMobile() && mobileKeyboardMode === 'input';
-    if (inputBar) inputBar.classList.toggle('hidden', !useInput);
-    // Bat/tat ban phim ao cua terminal qua textarea an cua xterm
+    if (inputBar) inputBar.classList.toggle('hidden', !inputVisible);
+    // Chi tat ban phim ao cua terminal o che do mobile (mobile khong co phim
+    // cung). Desktop giu terminal tuong tac de dung phim tat.
     if (term.textarea) {
-      if (useInput) {
+      if (inputVisible && isMobile()) {
         term.textarea.setAttribute('inputmode', 'none');
         term.textarea.readOnly = true;
       } else {
@@ -68,11 +72,19 @@
         term.textarea.readOnly = false;
       }
     }
+    updateToggleButton();
   }
 
-  /** Focus dung dich theo che do (o nhap rieng o mode 'input', nguoc lai terminal). */
+  /** Cap nhat trang thai sang/tat (active) cho nut toggle o nhap tren control bar. */
+  function updateToggleButton() {
+    if (!controlBar) return;
+    var b = controlBar.querySelector('[data-toggle="input"]');
+    if (b) b.classList.toggle('ctrl-btn--active', inputVisible);
+  }
+
+  /** Focus dung dich theo trang thai (o nhap rieng khi dang hien, nguoc lai terminal). */
   function focusActive() {
-    if (isMobile() && mobileKeyboardMode === 'input' && inputBarField) {
+    if (inputVisible && inputBarField) {
       inputBarField.focus();
     } else {
       term.focus();
@@ -126,8 +138,7 @@
       if (cfg.termFontSize) fontSizeDesktop = cfg.termFontSize;
       if (cfg.termFontSizeMobile) fontSizeMobile = cfg.termFontSizeMobile;
       applyFontSize();
-      // Ap che do ban phim mobile (resize|input)
-      if (cfg.mobileKeyboardMode) mobileKeyboardMode = cfg.mobileKeyboardMode;
+      // O nhap lieu mac dinh an; nguoi dung bat/tat bang nut toggle tren control bar.
       applyKeyboardMode();
       // Ap ngon ngu cho text tinh (data-i18n) + tieu de
       window.I18N.setLang(cfg.language || 'en');
@@ -188,19 +199,97 @@
 
     ws.onmessage = function (ev) { term.write(ev.data); };
 
-    ws.onclose = function () {
-      if (!manualClose) {
-        term.write('\r\n\x1b[1;31m' + t('term.disconnected') + '\x1b[0m\r\n');
+    ws.onclose = function (ev) {
+      if (manualClose) return;
+      // Close code rieng cho che do da thiet bi: KHONG tu reconnect (tranh
+      // vong tranh nhau giua hai thiet bi). Van hien nut Reconnect thu cong.
+      if (ev && ev.code === 4001) {
+        // Bi thiet bi khac cuop quyen
+        term.write('\r\n\x1b[1;31m' + t('term.takenOver') + '\x1b[0m\r\n');
         reconnectOverlay.classList.remove('hidden');
-        scheduleReconnect();
+        return;
       }
+      if (ev && ev.code === 4002) {
+        // Phien dang khoa o thiet bi khac
+        term.write('\r\n\x1b[1;31m' + t('term.locked') + '\x1b[0m\r\n');
+        reconnectOverlay.classList.remove('hidden');
+        return;
+      }
+      // Mat ket noi thong thuong -> tu reconnect co backoff
+      term.write('\r\n\x1b[1;31m' + t('term.disconnected') + '\x1b[0m\r\n');
+      reconnectOverlay.classList.remove('hidden');
+      scheduleReconnect();
     };
 
     ws.onerror = function () { /* onclose se chay sau */ };
   }
 
   // === Terminal input → gui len server ===
-  term.onData(function (data) { sendInput(data); });
+  // Xu ly IME (bo go tieng Viet nhu Unikey tren Chrome/Windows, IME tren iOS):
+  // GIAO cho xterm.js tu xu ly composition. xterm da co CompositionHelper lang
+  // nghe compositionstart/update/end tren chinh <textarea> an cua no va chi
+  // emit chuoi DA HOAN CHINH mot lan qua onData. KHONG tu them listener
+  // composition o day: hai lop chay chong nhau gay loi ky tu co dau "nhay"/lap
+  // (vd go "cộng" hien sai thu tu coô...). O nhap rieng (bat/tat bang nut
+  // toggle tren control bar) la duong du phong chac chan khi IME van loi.
+
+  // === Phim bo tro "dinh" (sticky) Ctrl/Shift tu control bar ===
+  // Bam Ctrl/Shift mot lan -> ap cho ky tu ke tiep (mo phong sticky-key tren
+  // ban phim mobile). Ap o onData (go thang) va o keydown cua o nhap rieng.
+  var pendingCtrl = false;
+  var pendingShift = false;
+
+  /** Cap nhat trang thai sang/tat (active) cho nut Ctrl/Shift tren control bar. */
+  function updateModifierButtons() {
+    if (!controlBar) return;
+    var c = controlBar.querySelector('[data-mod="ctrl"]');
+    var s = controlBar.querySelector('[data-mod="shift"]');
+    if (c) c.classList.toggle('ctrl-btn--active', pendingCtrl);
+    if (s) s.classList.toggle('ctrl-btn--active', pendingShift);
+  }
+
+  /** Xoa cac phim bo tro dang cho (sau khi da ap cho mot ky tu). */
+  function clearModifiers() {
+    if (pendingCtrl || pendingShift) {
+      pendingCtrl = false;
+      pendingShift = false;
+      updateModifierButtons();
+    }
+  }
+
+  /**
+   * Chuyen mot ky tu thuong thanh ma dieu khien Ctrl (vd 'c' -> \x03).
+   * Chi ap cho ky tu @ A-Z [ \ ] ^ _ va a-z; nguoc lai giu nguyen.
+   * @param {string} ch - mot ky tu
+   * @returns {string}
+   */
+  function applyCtrl(ch) {
+    var code = ch.toUpperCase().charCodeAt(0);
+    if (code >= 64 && code <= 95) return String.fromCharCode(code & 0x1f);
+    return ch;
+  }
+
+  /**
+   * Ap cac phim bo tro dang cho vao mot ky tu don (Shift uppercase, Ctrl thanh
+   * ma dieu khien). Tra ve chuoi da bien doi (khong xoa co — caller tu xoa).
+   * @param {string} data
+   * @returns {string}
+   */
+  function applyModifiers(data) {
+    if (data.length !== 1) return data;
+    if (pendingShift) data = data.toUpperCase();
+    if (pendingCtrl) data = applyCtrl(data);
+    return data;
+  }
+
+  term.onData(function (data) {
+    // Ap phim bo tro dang cho (Ctrl/Shift) cho ky tu vua go, roi xoa co
+    if (pendingCtrl || pendingShift) {
+      data = applyModifiers(data);
+      clearModifiers();
+    }
+    sendInput(data);
+  });
 
   // === Phim tat copy/paste (chuan terminal Ubuntu: Ctrl+Shift+C/V) ===
   // Tra ve false de xterm KHONG gui phim nay vao tmux (Ctrl+C van la ngat).
@@ -257,6 +346,31 @@
     left: '\x1b[D',
     right: '\x1b[C'
   };
+
+  // Map phim mui ten -> ky tu cuoi escape sequence (dung khi co modifier)
+  var ARROW_FINAL = { up: 'A', down: 'B', right: 'C', left: 'D' };
+
+  /**
+   * Dung chuoi escape cho phim dac biet (Tab/ESC/Enter/mui ten) co kem phim bo
+   * tro Ctrl/Shift dang cho. Theo chuan xterm modifier m = 1 + shift + ctrl*4:
+   *   - mui ten: \x1b[1;{m}{A|B|C|D} (vim/bash hieu), khong modifier -> KEY_MAP.
+   *   - Tab: Shift+Tab -> \x1b[Z (back-tab chuan); con lai (gom Ctrl+Tab) -> \t.
+   *   - Enter: Ctrl+Enter -> \n (LF); con lai -> \r.
+   *   - ESC/Ctrl+C: giu nguyen (modifier khong co y nghia chuan).
+   * @param {string} key - khoa trong KEY_MAP
+   * @param {boolean} ctrl
+   * @param {boolean} shift
+   * @returns {string}
+   */
+  function resolveKeyCombo(key, ctrl, shift) {
+    var m = 1 + (shift ? 1 : 0) + (ctrl ? 4 : 0);
+    if (ARROW_FINAL[key]) {
+      return m === 1 ? KEY_MAP[key] : '\x1b[1;' + m + ARROW_FINAL[key];
+    }
+    if (key === 'tab') return (shift && !ctrl) ? '\x1b[Z' : '\t';
+    if (key === 'enter') return ctrl ? '\n' : '\r';
+    return KEY_MAP[key];
+  }
 
   /** Doc CSRF token tu cookie (server tu cap). */
   function getCsrfToken() {
@@ -354,6 +468,19 @@
       var btn = e.target.closest('.ctrl-btn');
       if (!btn) return;
 
+      // Nut bo tro dinh (sticky) Ctrl/Shift: bat/tat cho ky tu ke tiep
+      var mod = btn.dataset.mod;
+      if (mod === 'ctrl') { pendingCtrl = !pendingCtrl; updateModifierButtons(); focusActive(); return; }
+      if (mod === 'shift') { pendingShift = !pendingShift; updateModifierButtons(); focusActive(); return; }
+
+      // Nut bat/tat o nhap lieu (runtime, ghi de mac dinh tu config)
+      if (btn.dataset.toggle === 'input') {
+        inputVisible = !inputVisible;
+        applyKeyboardMode();
+        focusActive();
+        return;
+      }
+
       // Nut cuon → goi server (tmux copy-mode)
       var scroll = btn.dataset.scroll;
       if (scroll) {
@@ -366,20 +493,21 @@
       if (action === 'copy') { copySelection(); return; }
       if (action === 'paste') { pasteFromClipboard(); return; }
 
-      // Nut gui phim
+      // Nut gui phim (Tab/ESC/Enter/mui ten...) — ket hop phim bo tro dang cho
       var key = btn.dataset.key;
       if (key && KEY_MAP[key] !== undefined) {
-        sendInput(KEY_MAP[key]);
+        sendInput(resolveKeyCombo(key, pendingCtrl, pendingShift));
+        clearModifiers();
         focusActive();
       }
     });
   }
 
-  // === O nhap lieu mobile (che do mobileKeyboardMode='input') ===
-  // Soan van ban trong o nay (o input HTML that nen IME tieng Viet hoat dong
-  // dung tren iPhone) roi bam nut gui: CHI chen ca doan van ban vao terminal
-  // mot lan, KHONG kem ky tu Enter/return o cuoi. Nguoi dung tu bam nut ⏎ tren
-  // control bar khi muon chay lenh. Sau khi gui thi xoa o + giu focus.
+  // === O nhap lieu rieng (bat/tat bang nut toggle tren control bar) ===
+  // Soan van ban trong o nay (o input HTML that nen IME nhu Unikey hoat dong
+  // dung) roi bam nut gui: CHI chen ca doan van ban vao terminal mot lan, KHONG
+  // kem ky tu Enter/return o cuoi. Nguoi dung tu bam nut ⏎ tren control bar khi
+  // muon chay lenh. Sau khi gui thi xoa o + giu focus.
   if (inputBar) {
     inputBar.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -390,11 +518,44 @@
     });
   }
 
-  // Chon che do 'input' tren mobile: cham vao terminal se focus o nhap lieu
-  // (bung ban phim voi o textbox phia tren) thay vi focus terminal (dang readOnly).
+  // Khi o nhap RONG: cac phim dieu huong/dieu khien duoc gui THANG vao terminal
+  // (Enter chay lenh, Backspace xoa lui, Delete xoa toi) thay vi chi soan trong
+  // o. Khi o CO text thi giu nguyen hanh vi soan thao binh thuong (Enter -> submit
+  // chen text, Backspace/Delete sua noi dung o). Cung ho tro phim bo tro dinh
+  // (Ctrl) cho ky tu don khi o rong (vd bam Ctrl roi 'c' -> ^C).
+  if (inputBarField) {
+    inputBarField.addEventListener('keydown', function (e) {
+      var empty = inputBarField.value === '';
+
+      // Ctrl dang cho + ky tu don (chi khi o rong) -> gui ma dieu khien
+      if (empty && pendingCtrl && e.key && e.key.length === 1) {
+        e.preventDefault();
+        sendInput(applyModifiers(e.key));
+        clearModifiers();
+        return;
+      }
+
+      if (!empty) return;
+
+      if (e.key === 'Enter') {
+        e.preventDefault(); // chan submit (von khong gui gi khi rong)
+        sendInput(KEY_MAP.enter);
+        clearModifiers();
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        sendInput('\x7f'); // DEL: backspace chuan terminal
+      } else if (e.key === 'Delete') {
+        e.preventDefault();
+        sendInput('\x1b[3~'); // escape sequence phim Delete
+      }
+    });
+  }
+
+  // Khi o nhap dang hien: cham/click vao terminal se focus o nhap lieu thay vi
+  // terminal (de bo go IME hoat dong dung tren o nhap that).
   if (container) {
     container.addEventListener('click', function () {
-      if (isMobile() && mobileKeyboardMode === 'input' && inputBarField) {
+      if (inputVisible && inputBarField) {
         inputBarField.focus();
       }
     });

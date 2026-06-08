@@ -9,6 +9,7 @@
 
 import { renameSession, hasSession, validateName, scrollSession } from '../tmux.js';
 import * as meta from '../meta-store.js';
+import { renameLog } from '../session-logger.js';
 import { requireAuth, requireCsrf } from '../auth.js';
 
 /**
@@ -79,6 +80,10 @@ async function metaPlugin(fastify, opts) {
     try {
       await renameSession(name, newName);
       meta.rename(name, newName); // di chuyen metadata theo
+      // Doi ten file log theo phien (loi rename log khong lam hong response)
+      try {
+        await renameLog(name, newName);
+      } catch { /* bo qua loi rename log */ }
       return { ok: true, name: newName };
     } catch (err) {
       reply.code(500).send({ error: err.message });

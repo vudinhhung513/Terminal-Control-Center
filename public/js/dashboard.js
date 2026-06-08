@@ -16,9 +16,9 @@
   var msgLogin = document.getElementById('msg-login');
   var inputPassword = document.getElementById('input-password');
   var btnLogout = document.getElementById('btn-logout');
-  var btnRefresh = document.getElementById('btn-refresh');
   var btnTheme = document.getElementById('btn-theme');
   var btnSettings = document.getElementById('btn-settings');
+  var btnLogs = document.getElementById('btn-logs');
   var btnCreate = document.getElementById('btn-create');
   var inputSessionName = document.getElementById('input-session-name');
   var inputShell = document.getElementById('input-shell');
@@ -35,10 +35,23 @@
   var settingsBackdrop = document.getElementById('settings-backdrop');
   var settingsConfirmGroup = document.getElementById('settings-confirm-group');
 
+  // Logs modal
+  var logsModal = document.getElementById('logs-modal');
+  var logsBackdrop = document.getElementById('logs-backdrop');
+  var btnLogsClose = document.getElementById('btn-logs-close');
+  var logsListEl = document.getElementById('logs-list');
+  var logsListView = document.getElementById('logs-list-view');
+  var logsDetailView = document.getElementById('logs-detail-view');
+  var logsDetailName = document.getElementById('logs-detail-name');
+  var logsContent = document.getElementById('logs-content');
+  var btnLogsBack = document.getElementById('btn-logs-back');
+  var msgLogs = document.getElementById('msg-logs');
+
   // === Trang thai ===
   var authEnabled = false;
   var refreshTimer = null;
   var themeMode = 'dark'; // mode theme hien tai: 'dark' | 'light' | 'auto'
+  var loggingMode = 'off'; // che do log hien tai (an/hien nut Logs)
 
   // Thu tu xoay vong khi bam nut theme va icon tuong ung
   var THEME_ORDER = ['dark', 'light', 'auto'];
@@ -184,6 +197,29 @@
   function saveSettings(payload) {
     return fetch('/api/settings', {
       method: 'PUT', headers: mutHeaders(), body: JSON.stringify(payload)
+    }).then(function (res) {
+      if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
+      return res.json();
+    });
+  }
+
+  function fetchLogs() {
+    return fetch('/api/logs').then(function (res) {
+      if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
+      return res.json();
+    });
+  }
+
+  function fetchLogContent(name) {
+    return fetch('/api/logs/' + encodeURIComponent(name)).then(function (res) {
+      if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
+      return res.json();
+    });
+  }
+
+  function deleteLogApi(name) {
+    return fetch('/api/logs/' + encodeURIComponent(name), {
+      method: 'DELETE', headers: mutHeaders()
     }).then(function (res) {
       if (!res.ok) return res.json().then(function (b) { return Promise.reject(b); });
       return res.json();
@@ -351,11 +387,19 @@
       });
   }
 
+  /** Hien nut Logs neu logging dang bat (va dang o dashboard). */
+  function updateLogsButton() {
+    if (!btnLogs) return;
+    var show = loggingMode !== 'off' && !dashboardSection.classList.contains('hidden');
+    btnLogs.classList.toggle('hidden', !show);
+  }
+
   function showDashboard() {
     loginSection.classList.add('hidden');
     dashboardSection.classList.remove('hidden');
     btnSettings.classList.remove('hidden');
     if (authEnabled) btnLogout.classList.remove('hidden');
+    updateLogsButton();
     loadSessions();
     startAutoRefresh();
   }
@@ -365,6 +409,7 @@
     loginSection.classList.remove('hidden');
     btnLogout.classList.add('hidden');
     btnSettings.classList.add('hidden');
+    if (btnLogs) btnLogs.classList.add('hidden');
     stopAutoRefresh();
   }
 
@@ -396,9 +441,11 @@
         document.getElementById('set-font-family').value = cfg.termFontFamily;
         document.getElementById('set-font-size').value = cfg.termFontSize;
         document.getElementById('set-font-size-mobile').value = cfg.termFontSizeMobile;
-        document.getElementById('set-mobile-keyboard').value = cfg.mobileKeyboardMode || 'resize';
         document.getElementById('set-encoding').value = cfg.termEncoding || 'utf-8';
+        document.getElementById('set-multi-device').value = cfg.multiDeviceMode || 'takeover';
         document.getElementById('set-default-path').value = cfg.defaultPath || '';
+        document.getElementById('set-log-mode').value = (cfg.logging && cfg.logging.mode) || 'off';
+        document.getElementById('set-log-retention').value = (cfg.logging && cfg.logging.retentionDays) || 7;
         document.getElementById('set-language').value = cfg.language || 'en';
         document.getElementById('set-theme').value = cfg.theme || 'dark';
         document.getElementById('set-rl-enabled').checked = cfg.loginRateLimit.enabled;
@@ -426,9 +473,13 @@
       termFontFamily: document.getElementById('set-font-family').value.trim(),
       termFontSize: Number(document.getElementById('set-font-size').value),
       termFontSizeMobile: Number(document.getElementById('set-font-size-mobile').value),
-      mobileKeyboardMode: document.getElementById('set-mobile-keyboard').value,
       termEncoding: document.getElementById('set-encoding').value,
+      multiDeviceMode: document.getElementById('set-multi-device').value,
       defaultPath: document.getElementById('set-default-path').value.trim(),
+      logging: {
+        mode: document.getElementById('set-log-mode').value,
+        retentionDays: Number(document.getElementById('set-log-retention').value)
+      },
       language: document.getElementById('set-language').value,
       theme: document.getElementById('set-theme').value,
       loginRateLimit: {
@@ -453,6 +504,9 @@
         showSettingsMsg(res.message || t('settings.saved'), 'info');
         // Cap nhat trang thai auth cuc bo
         authEnabled = payload.authEnabled;
+        // Cap nhat che do log -> an/hien nut Logs ngay
+        loggingMode = payload.logging.mode;
+        updateLogsButton();
         if (!res.needsRestart) {
           setTimeout(closeSettings, 1200);
         }
@@ -462,12 +516,113 @@
       });
   }
 
+  // === Logs modal ===
+
+  function showLogsMsg(text, type) {
+    msgLogs.textContent = text;
+    msgLogs.className = 'message message--' + (type || 'info');
+    msgLogs.classList.remove('hidden');
+  }
+  function hideLogsMsg() { msgLogs.classList.add('hidden'); }
+
+  /** Format so byte sang chuoi de doc (B/KB/MB). */
+  function formatBytes(bytes) {
+    if (!bytes) return '0 B';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  /** Hien danh sach file log (an view chi tiet). */
+  function renderLogsList(logs) {
+    logsDetailView.classList.add('hidden');
+    logsListView.classList.remove('hidden');
+    logsListEl.innerHTML = '';
+
+    if (!logs || logs.length === 0) {
+      var empty = document.createElement('p');
+      empty.className = 'logs-list__empty';
+      empty.textContent = t('logs.empty');
+      logsListEl.appendChild(empty);
+      return;
+    }
+
+    logs.forEach(function (lg) {
+      var item = document.createElement('div');
+      item.className = 'logs-list__item';
+
+      var info = document.createElement('div');
+      info.className = 'logs-list__info';
+      var nameEl = document.createElement('div');
+      nameEl.className = 'logs-list__name';
+      nameEl.textContent = lg.name;
+      var metaEl = document.createElement('div');
+      metaEl.className = 'logs-list__meta';
+      metaEl.textContent = formatBytes(lg.size) + ' · ' + formatMs(lg.mtime);
+      info.appendChild(nameEl);
+      info.appendChild(metaEl);
+
+      var btnView = document.createElement('button');
+      btnView.className = 'btn btn--ghost btn--small';
+      btnView.textContent = t('logs.view');
+      btnView.addEventListener('click', function () { viewLog(lg.name); });
+
+      var btnDel = document.createElement('button');
+      btnDel.className = 'btn btn--danger btn--small';
+      btnDel.textContent = t('logs.delete');
+      btnDel.addEventListener('click', function () { handleDeleteLog(lg.name); });
+
+      item.appendChild(info);
+      item.appendChild(btnView);
+      item.appendChild(btnDel);
+      logsListEl.appendChild(item);
+    });
+  }
+
+  /** Tai va hien danh sach log. */
+  function loadLogs() {
+    hideLogsMsg();
+    fetchLogs()
+      .then(function (data) { renderLogsList(data.logs || []); })
+      .catch(function (err) { showLogsMsg(t('logs.loadFail') + (err.error || ''), 'error'); });
+  }
+
+  /** Mo modal Logs. */
+  function openLogs() {
+    hideLogsMsg();
+    logsModal.classList.remove('hidden');
+    loadLogs();
+  }
+  function closeLogs() { logsModal.classList.add('hidden'); }
+
+  /** Xem noi dung mot log (read-only). */
+  function viewLog(name) {
+    hideLogsMsg();
+    fetchLogContent(name)
+      .then(function (data) {
+        logsListView.classList.add('hidden');
+        logsDetailView.classList.remove('hidden');
+        logsDetailName.textContent = data.name;
+        logsContent.textContent = data.content || '';
+      })
+      .catch(function (err) { showLogsMsg(t('logs.loadFail') + (err.error || ''), 'error'); });
+  }
+
+  /** Xoa mot file log (co xac nhan). */
+  function handleDeleteLog(name) {
+    if (!confirm(t('logs.deleteConfirm', { name: name }))) return;
+    deleteLogApi(name)
+      .then(loadLogs)
+      .catch(function (err) { showLogsMsg(t('logs.deleteFail') + (err.error || ''), 'error'); });
+  }
+
   // === Khoi tao ===
 
   function init() {
     fetchConfig()
       .then(function (cfg) {
         authEnabled = cfg.authEnabled;
+        loggingMode = cfg.loggingMode || 'off';
         // Ap ngon ngu truoc khi hien UI
         window.I18N.setLang(cfg.language || 'en');
         window.I18N.apply();
@@ -520,8 +675,6 @@
     doLogout().then(showLogin);
   });
 
-  btnRefresh.addEventListener('click', loadSessions);
-
   // Nut theme: xoay vong dark -> light -> auto -> dark, ap ngay va luu len server
   if (btnTheme) {
     btnTheme.addEventListener('click', function () {
@@ -550,6 +703,12 @@
   btnSettingsCancel.addEventListener('click', closeSettings);
   settingsBackdrop.addEventListener('click', closeSettings);
   settingsForm.addEventListener('submit', submitSettings);
+
+  // Modal Logs: mo/dong + quay lai danh sach tu view chi tiet
+  if (btnLogs) btnLogs.addEventListener('click', openLogs);
+  if (btnLogsClose) btnLogsClose.addEventListener('click', closeLogs);
+  if (logsBackdrop) logsBackdrop.addEventListener('click', closeLogs);
+  if (btnLogsBack) btnLogsBack.addEventListener('click', loadLogs);
 
   init();
 })();

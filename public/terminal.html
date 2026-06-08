@@ -34,7 +34,7 @@
   <!-- Terminal container -->
   <div id="terminal-container" class="terminal-container"></div>
 
-  <!-- O nhap lieu mobile (an mac dinh; chi hien khi mobileKeyboardMode='input').
+  <!-- O nhap lieu (an mac dinh; bat/tat bang nut toggle ⌨ tren control bar).
        Soan van ban tai day (IME tieng Viet hoat dong), bam nut may bay giay
        de CHEN ca doan vao terminal mot lan (khong kem Enter). -->
   <form id="input-bar" class="input-bar hidden">
@@ -50,10 +50,13 @@
 
   <!-- Thanh nut dieu khien (huu ich cho mobile / khong co phim cung) -->
   <div id="control-bar" class="control-bar">
-    <button class="ctrl-btn" data-key="enter" data-i18n-title="ctrl.enter" title="Enter">⏎</button>
+    <button class="ctrl-btn" data-toggle="input" data-i18n-title="ctrl.toggleInput" title="Toggle input box">⌨</button>
+    <span class="control-bar__sep"></span>
     <button class="ctrl-btn" data-key="esc" data-i18n-title="ctrl.esc" title="ESC">ESC</button>
     <button class="ctrl-btn" data-key="ctrlc" data-i18n-title="ctrl.ctrlc" title="Ctrl+C">^C</button>
-    <button class="ctrl-btn" data-key="tab" data-i18n-title="ctrl.tab" title="Tab">⇥</button>
+    <button class="ctrl-btn" data-key="tab" data-i18n-title="ctrl.tab" title="Tab">Tab</button>
+    <button class="ctrl-btn" data-mod="ctrl" data-i18n-title="ctrl.ctrl" title="Ctrl">Ctrl</button>
+    <button class="ctrl-btn" data-mod="shift" data-i18n-title="ctrl.shift" title="Shift">Shift</button>
     <span class="control-bar__sep"></span>
     <button class="ctrl-btn" data-key="left" data-i18n-title="ctrl.left" title="Left">←</button>
     <button class="ctrl-btn" data-key="up" data-i18n-title="ctrl.up" title="Up">↑</button>
@@ -65,6 +68,8 @@
     <span class="control-bar__sep"></span>
     <button class="ctrl-btn" data-scroll="up" data-i18n-title="ctrl.scrollUp" title="Scroll up">▲</button>
     <button class="ctrl-btn" data-scroll="down" data-i18n-title="ctrl.scrollDown" title="Scroll down">▼</button>
+    <span class="control-bar__sep"></span>
+    <button class="ctrl-btn" data-key="enter" data-i18n-title="ctrl.enter" title="Enter">⏎</button>
   </div>
 
   <!-- Nut ket noi lai (an mac dinh) -->

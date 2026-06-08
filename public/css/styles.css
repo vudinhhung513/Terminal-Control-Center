@@ -493,7 +493,18 @@ html, body {
   accent-color: var(--accent);
 }
 
-/* === O nhap lieu mobile (che do mobileKeyboardMode='input') === */
+/* Ghi chu/canh bao trong Settings (vd canh bao bao mat khi bat log) */
+.settings-hint {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.settings-hint--warn {
+  color: var(--danger);
+}
+
+/* === O nhap lieu (bat/tat bang nut toggle tren control bar) === */
 .input-bar {
   display: flex;
   gap: 6px;
@@ -561,11 +572,82 @@ html, body {
   opacity: 0.8;
 }
 
+/* Nut bo tro dinh (Ctrl/Shift) khi dang bat: noi bat de biet se ap cho phim ke tiep */
+.ctrl-btn--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
 .control-bar__sep {
   width: 1px;
   align-self: stretch;
   background: var(--border);
   margin: 0 4px;
+}
+
+/* === Quan ly log (modal Logs) === */
+.logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.logs-list__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+}
+
+.logs-list__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.logs-list__name {
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.logs-list__meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.logs-list__empty {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.logs-detail__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.logs-detail__name {
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.logs-content {
+  max-height: 60vh;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* === Utility: an/hien === */

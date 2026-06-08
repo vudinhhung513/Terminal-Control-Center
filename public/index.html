@@ -25,7 +25,7 @@
   <header class="header">
     <h1 class="header__title"><span data-i18n="app.title">Terminal Control Center</span> <span id="app-version" class="app-version"></span></h1>
     <div class="header__actions">
-      <button id="btn-refresh" class="btn btn--ghost btn--small" data-i18n="btn.refresh" data-i18n-title="btn.refresh">&#x21bb; Refresh</button>
+      <button id="btn-logs" class="btn btn--ghost btn--small hidden" data-i18n="btn.logs" data-i18n-title="btn.logs">&#x1F4C4; Logs</button>
       <button id="btn-theme" class="btn btn--ghost btn--small btn--icon" data-i18n-title="btn.theme" aria-label="Theme">&#x1F319;</button>
       <button id="btn-settings" class="btn btn--ghost btn--small hidden" data-i18n="btn.settings" data-i18n-title="btn.settings">&#9881; Settings</button>
       <button id="btn-logout" class="btn btn--ghost btn--small hidden" data-i18n="btn.logout">Log out</button>
@@ -117,13 +117,6 @@
             <span data-i18n="settings.fontSizeMobile">Mobile font size (8–40)</span>
             <input id="set-font-size-mobile" class="input" type="number" min="8" max="40" placeholder="12">
           </label>
-          <label class="settings-field">
-            <span><span data-i18n="settings.mobileKeyboard">Mobile keyboard</span> <small data-i18n="settings.mobileKeyboardHint">(reopen terminal after change)</small></span>
-            <select id="set-mobile-keyboard" class="input">
-              <option value="resize" data-i18n="settings.mobileKeyboardResize">Shrink terminal to fit</option>
-              <option value="input" data-i18n="settings.mobileKeyboardInput">Show input box</option>
-            </select>
-          </label>
         </fieldset>
 
         <!-- Nhom: Phien moi (default path) -->
@@ -154,6 +147,36 @@
               <option value="iso-8859-1">ISO-8859-1 (Latin-1)</option>
             </select>
           </label>
+        </fieldset>
+
+        <!-- Nhom: Truy cap da thiet bi -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.multiDeviceLegend">Multi-device access</legend>
+          <label class="settings-field">
+            <span data-i18n="settings.multiDevice">When a session is open on another device</span>
+            <select id="set-multi-device" class="input">
+              <option value="takeover" data-i18n="settings.multiDeviceTakeover">Take over (disconnect the other device)</option>
+              <option value="lock" data-i18n="settings.multiDeviceLock">Lock (block the new device)</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <!-- Nhom: Ghi log terminal -->
+        <fieldset class="settings-group">
+          <legend data-i18n="settings.logLegend">Terminal logging</legend>
+          <label class="settings-field">
+            <span data-i18n="settings.logMode">Log level</span>
+            <select id="set-log-mode" class="input">
+              <option value="off" data-i18n="settings.logModeOff">Off</option>
+              <option value="input" data-i18n="settings.logModeInput">Input only (commands)</option>
+              <option value="full" data-i18n="settings.logModeFull">Full (input + output)</option>
+            </select>
+          </label>
+          <label class="settings-field">
+            <span data-i18n="settings.logRetention">Retention (days)</span>
+            <input id="set-log-retention" class="input" type="number" min="1" placeholder="7">
+          </label>
+          <p class="settings-hint settings-hint--warn" data-i18n="settings.logWarn">Warning: logging may record passwords typed at prompts (sudo/ssh). Logs are stored on the server in data/logs/.</p>
         </fieldset>
 
         <!-- Nhom: Rate-limit dang nhap -->
@@ -215,6 +238,34 @@
           <button type="submit" class="btn btn--primary" data-i18n="settings.save">Save</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal Logs (an mac dinh; chi mo khi logging dang bat) -->
+  <div id="logs-modal" class="modal hidden">
+    <div class="modal__backdrop" id="logs-backdrop"></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="logs-title">
+      <div class="modal__header">
+        <h2 id="logs-title" class="modal__title" data-i18n="logs.title">Logs</h2>
+        <button id="btn-logs-close" class="btn btn--ghost btn--small" data-i18n-title="logs.close" aria-label="Close">&times;</button>
+      </div>
+
+      <!-- Danh sach file log (an khi dang xem chi tiet) -->
+      <div id="logs-list-view">
+        <p class="settings-hint" data-i18n="logs.hint">View-only. Logs are read-only here; you can view or delete but not edit them.</p>
+        <div id="logs-list" class="logs-list"></div>
+      </div>
+
+      <!-- Xem chi tiet noi dung mot log (read-only) -->
+      <div id="logs-detail-view" class="hidden">
+        <div class="logs-detail__bar">
+          <button id="btn-logs-back" class="btn btn--ghost btn--small" data-i18n="logs.back">← Back</button>
+          <span id="logs-detail-name" class="logs-detail__name"></span>
+        </div>
+        <pre id="logs-content" class="logs-content" readonly></pre>
+      </div>
+
+      <div id="msg-logs" class="message hidden"></div>
     </div>
   </div>
 

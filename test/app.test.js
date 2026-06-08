@@ -20,10 +20,11 @@ const BASE_CONFIG = {
   termFontFamily: 'monospace',
   termFontSize: 14,
   termFontSizeMobile: 12,
-  mobileKeyboardMode: 'resize',
   termEncoding: 'utf-8',
+  multiDeviceMode: 'takeover',
   defaultPath: '',
   language: 'en',
+  logging: { mode: 'off', retentionDays: 7 },
   loginRateLimit: { enabled: true, maxAttempts: 5, windowMs: 60000 }
 };
 
@@ -80,6 +81,46 @@ describe('buildApp /api/config', () => {
     const res = await app.inject({ method: 'GET', url: '/api/config' });
     const body = JSON.parse(res.body);
     assert.ok(body.warnings.includes('exposedNoAuth'));
+    await app.close();
+  });
+
+  it('tra loggingMode theo config.logging.mode', async () => {
+    const app = await makeApp({ logging: { mode: 'full', retentionDays: 7 } });
+    const res = await app.inject({ method: 'GET', url: '/api/config' });
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.loggingMode, 'full');
+    await app.close();
+  });
+});
+
+describe('buildApp /api/logs', () => {
+  it('GET /api/logs tra 200 voi mang logs (auth tat)', async () => {
+    const app = await makeApp();
+    const res = await app.inject({ method: 'GET', url: '/api/logs' });
+    assert.strictEqual(res.statusCode, 200);
+    const body = JSON.parse(res.body);
+    assert.ok(Array.isArray(body.logs));
+    await app.close();
+  });
+
+  it('GET /api/logs/:name ten khong hop le -> 400', async () => {
+    const app = await makeApp();
+    const res = await app.inject({ method: 'GET', url: '/api/logs/has%20space' });
+    assert.strictEqual(res.statusCode, 400);
+    await app.close();
+  });
+
+  it('GET /api/logs/:name khong ton tai -> 404', async () => {
+    const app = await makeApp();
+    const res = await app.inject({ method: 'GET', url: '/api/logs/khongton' });
+    assert.strictEqual(res.statusCode, 404);
+    await app.close();
+  });
+
+  it('DELETE /api/logs/:name khong co CSRF -> 403', async () => {
+    const app = await makeApp();
+    const res = await app.inject({ method: 'DELETE', url: '/api/logs/alpha' });
+    assert.strictEqual(res.statusCode, 403);
     await app.close();
   });
 });
@@ -169,7 +210,7 @@ describe('buildApp /api/settings', () => {
     await app.close();
   });
 
-  it('PUT /api/settings + mobileKeyboardMode khong hop le -> 400', async () => {
+  it('PUT /api/settings + multiDeviceMode khong hop le -> 400', async () => {
     const app = await makeApp();
     const { token, cookieStr } = await getCsrf(app);
     const res = await app.inject({
@@ -180,18 +221,18 @@ describe('buildApp /api/settings', () => {
         'x-csrf-token': token,
         cookie: cookieStr
       },
-      body: JSON.stringify({ mobileKeyboardMode: 'badmode' })
+      body: JSON.stringify({ multiDeviceMode: 'badmode' })
     });
     assert.strictEqual(res.statusCode, 400);
     await app.close();
   });
 
-  it('GET /api/settings tra termFontSizeMobile va mobileKeyboardMode', async () => {
+  it('GET /api/settings tra termFontSizeMobile va multiDeviceMode', async () => {
     const app = await makeApp();
     const res = await app.inject({ method: 'GET', url: '/api/settings' });
     const body = JSON.parse(res.body);
     assert.strictEqual(body.termFontSizeMobile, 12);
-    assert.strictEqual(body.mobileKeyboardMode, 'input');
+    assert.strictEqual(body.multiDeviceMode, 'takeover');
     await app.close();
   });
 

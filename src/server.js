@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import { loadConfig, saveConfig } from './config.js';
 import { buildApp } from './app.js';
 import { ensureCert } from './tls.js';
+import { startLoggerLoop } from './session-logger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..');
@@ -61,6 +62,10 @@ try {
 
   const addr = `${isHttps ? 'https' : 'http'}://${config.host}:${config.port}`;
   app.log.info(`Terminal Control Center dang chay tai ${addr}`);
+
+  // Khoi dong vong lap ghi log terminal (pump stream + don log cu dinh ky).
+  // Chi chay khi server that su listen (khong chay trong test inject).
+  startLoggerLoop();
 
   // Canh bao bao mat
   if (!config.authEnabled) {
