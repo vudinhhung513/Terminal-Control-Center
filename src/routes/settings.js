@@ -34,6 +34,7 @@ function publicSettings(cfg) {
     authEnabled: cfg.authEnabled,
     // Khong tra password/sessionSecret; chi bao da dat mat khau hay chua
     hasPassword: Boolean(cfg.password),
+    sessionMaxAgeHours: cfg.sessionMaxAgeHours,
     shell: cfg.shell,
     shells: cfg.shells,
     theme: cfg.theme,
@@ -108,6 +109,16 @@ async function settingsPlugin(fastify, opts) {
     // Doi mat khau (hash truoc khi luu)
     if (typeof body.password === 'string' && body.password !== '') {
       patch.password = hashPassword(body.password);
+    }
+
+    // Thoi gian song cookie phien (gio): so nguyen 0..8760 (0 = session cookie)
+    if (body.sessionMaxAgeHours !== undefined) {
+      const h = Number(body.sessionMaxAgeHours);
+      if (!Number.isInteger(h) || h < 0 || h > 8760) {
+        reply.code(400).send({ error: 'sessionMaxAgeHours must be an integer in 0..8760' });
+        return;
+      }
+      patch.sessionMaxAgeHours = h;
     }
 
     // Shell

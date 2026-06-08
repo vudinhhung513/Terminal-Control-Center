@@ -13,6 +13,7 @@ const BASE_CONFIG = {
   authEnabled: false,
   password: '',
   sessionSecret: 'test-secret',
+  sessionMaxAgeHours: 720,
   shell: 'bash',
   shells: ['bash', 'zsh', 'sh'],
   theme: 'dark',
@@ -233,6 +234,31 @@ describe('buildApp /api/settings', () => {
     const body = JSON.parse(res.body);
     assert.strictEqual(body.termFontSizeMobile, 12);
     assert.strictEqual(body.multiDeviceMode, 'takeover');
+    await app.close();
+  });
+
+  it('PUT /api/settings + sessionMaxAgeHours khong hop le -> 400', async () => {
+    const app = await makeApp();
+    const { token, cookieStr } = await getCsrf(app);
+    const res = await app.inject({
+      method: 'PUT',
+      url: '/api/settings',
+      headers: {
+        'content-type': 'application/json',
+        'x-csrf-token': token,
+        cookie: cookieStr
+      },
+      body: JSON.stringify({ sessionMaxAgeHours: -5 })
+    });
+    assert.strictEqual(res.statusCode, 400);
+    await app.close();
+  });
+
+  it('GET /api/settings tra sessionMaxAgeHours', async () => {
+    const app = await makeApp();
+    const res = await app.inject({ method: 'GET', url: '/api/settings' });
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.sessionMaxAgeHours, 720);
     await app.close();
   });
 

@@ -82,6 +82,7 @@ Chỉnh sửa file `config.json` (được tạo từ `config.example.json`):
 | `authEnabled` | Bật/tắt xác thực đăng nhập | `false` |
 | `password` | Mật khẩu đăng nhập. Lưu dạng **hash scrypt** sau khi đổi qua giao diện (chỉ có tác dụng khi `authEnabled: true`) | `""` |
 | `sessionSecret` | Chuỗi bí mật dùng ký session cookie. **Phải đổi** trong production | `"REPLACE_WITH_RANDOM_SECRET"` |
+| `sessionMaxAgeHours` | Thời hạn đăng nhập (giờ): cookie nhúng mốc hết hạn (server tự enforce kể cả khi cookie bị sao chép) + đặt `maxAge` cho trình duyệt. `0` = session cookie (mất khi đóng trình duyệt). Tối đa `8760` (~1 năm). Đổi xong cần đăng nhập lại | `720` |
 | `shell` | Shell mặc định cho phiên mới | `"bash"` |
 | `shells` | Allowlist shell cho phép chọn khi tạo phiên | `["bash","zsh","sh","fish"]` |
 | `theme` | Theme giao diện: `dark`, `light` hoặc `auto` (theo hệ điều hành) | `"dark"` |
@@ -111,6 +112,7 @@ Chỉnh sửa file `config.json` (được tạo từ `config.example.json`):
 Nhấn nút **⚙ Settings** trên dashboard để mở bảng cài đặt. Tại đây có thể:
 
 - Bật/tắt **yêu cầu mật khẩu** khi truy cập và **đổi mật khẩu** (lưu dạng hash scrypt).
+- Đặt **thời hạn đăng nhập** (`sessionMaxAgeHours`): cookie phiên có hạn (server tự enforce) + tự xoá ở trình duyệt; `0` = mất khi đóng trình duyệt. Đổi xong cần đăng nhập lại.
 - Cấu hình **Host** và **Port** (cần khởi động lại để áp dụng — xem bên dưới).
 - Đổi **font chữ** và **cỡ chữ** terminal — đặt riêng cỡ chữ cho **desktop** và **mobile**.
 - Chọn **bảng mã (encoding)** — đổi xong cần mở lại terminal.

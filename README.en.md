@@ -84,6 +84,7 @@ Edit `config.json` (created from `config.example.json`):
 | `authEnabled` | Enable/disable login authentication | `false` |
 | `password` | Login password. Stored as **scrypt hash** after changing via UI (only effective when `authEnabled: true`) | `""` |
 | `sessionSecret` | Secret used to sign the session cookie. **Must change** in production | `"REPLACE_WITH_RANDOM_SECRET"` |
+| `sessionMaxAgeHours` | Login expiry (hours): the cookie embeds an expiry timestamp (server-enforced even if the cookie is copied) plus a browser `maxAge`. `0` = session cookie (cleared when the browser closes). Max `8760` (~1 year). Re-login after changing | `720` |
 | `shell` | Default shell for new sessions | `"bash"` |
 | `shells` | Allowlist of shells available for selection when creating sessions | `["bash","zsh","sh","fish"]` |
 | `theme` | UI theme: `dark`, `light` or `auto` (follows the OS) | `"dark"` |
@@ -113,6 +114,7 @@ Edit `config.json` (created from `config.example.json`):
 Click the **⚙ Settings** button on the dashboard to open the settings panel. There you can:
 
 - Toggle **require password** on access and **change the password** (stored as scrypt hash).
+- Set the **login expiry** (`sessionMaxAgeHours`): the session cookie has a server-enforced expiry + browser auto-clear; `0` = cleared when the browser closes. Re-login after changing.
 - Configure **Host** and **Port** (requires restart to apply — see below).
 - Change terminal **font family** and **font size** — set separate sizes for **desktop** and **mobile**.
 - Select **character encoding** — reopen the terminal after changing.

@@ -19,6 +19,10 @@ export const DEFAULTS = {
   authEnabled: false,
   password: '',
   sessionSecret: 'REPLACE_WITH_RANDOM_SECRET',
+  // Thoi gian song cua cookie phien dang nhap (gio). Cookie ky kem moc het han
+  // (server tu enforce), dong thoi dat maxAge cho trinh duyet. 0 = session
+  // cookie (mat khi dong trinh duyet). Mac dinh 720 gio = 30 ngay.
+  sessionMaxAgeHours: 720,
   shell: 'bash',
   // Danh sach shell cho phep chon khi tao phien (allowlist). La ranh gioi an
   // toan: chi cac gia tri trong day moi duoc truyen vao tmux new-session.
@@ -125,6 +129,12 @@ function normalize(cfg) {
   // Theme chi cho phep 'dark', 'light' hoac 'auto'
   if (c.theme !== 'dark' && c.theme !== 'light' && c.theme !== 'auto') {
     c.theme = DEFAULTS.theme;
+  }
+
+  // sessionMaxAgeHours phai la so nguyen >= 0 (0 = session cookie). Toi da
+  // 8760 gio (~1 nam) de tranh gia tri vo ly.
+  if (!Number.isInteger(c.sessionMaxAgeHours) || c.sessionMaxAgeHours < 0 || c.sessionMaxAgeHours > 8760) {
+    c.sessionMaxAgeHours = DEFAULTS.sessionMaxAgeHours;
   }
 
   // defaultPath phai la string; nguoc lai ve rong

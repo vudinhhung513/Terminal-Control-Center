@@ -5,6 +5,23 @@ Tất cả thay đổi đáng chú ý của dự án được ghi tại đây.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/),
 và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.12.0] - 2026-06-09
+
+### Added (Thêm mới)
+- **Giới hạn thời hạn đăng nhập (`sessionMaxAgeHours`, mặc định 720 giờ = 30
+  ngày)**: cookie phiên giờ có hạn. Mô hình **stateless, một người dùng** — không
+  dùng session ID hay store phía server:
+  - Giá trị cookie ký nhúng mốc hết hạn `authed:<expiresAtMs>`, `isAuthed` enforce
+    hạn phía server (an toàn kể cả khi cookie bị sao chép), đồng thời đặt `maxAge`
+    để trình duyệt tự xoá.
+  - `0` = session cookie (mất khi đóng trình duyệt). Tối đa 8760 giờ (~1 năm).
+  - Tương thích ngược: cookie giá trị `authed` cũ vẫn được chấp nhận.
+  - Thêm field trong Settings (nhóm Xác thực) + validate ở `config.js`/`settings.js`.
+- **Tài liệu kiến trúc Hub đa node**: thêm mục *"Hub đa node"* trong
+  [ARCHITECTURE.md](docs/ARCHITECTURE.md) (TCC-Hub: dashboard tổng, SSO, node
+  registry + heartbeat, reverse-proxy; kết nối reverse tunnel/VPN; bảo mật per-node
+  token) và mốc **v3.0.0 — Hub đa node** trong [ROADMAP.md](docs/ROADMAP.md).
+
 ## [1.11.0] - 2026-06-09
 
 ### Added (Thêm mới)

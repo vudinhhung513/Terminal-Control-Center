@@ -123,7 +123,12 @@ Tầng dữ liệu / tiện ích
 ## 4. Bảo mật (tóm tắt)
 
 - Mật khẩu hash bằng scrypt (`password.js`), không lưu plaintext.
-- Cookie phiên ký (signed), `httpOnly`, `sameSite=strict`.
+- Cookie phiên ký (signed), `httpOnly`, `sameSite=strict`. **Có thời hạn**
+  (`sessionMaxAgeHours`, mặc định 720 giờ = 30 ngày): giá trị cookie nhúng mốc
+  hết hạn dạng `authed:<expiresAtMs>` để server tự enforce (kể cả khi cookie bị
+  sao chép), đồng thời đặt `maxAge` cho trình duyệt tự xoá. Giá trị `0` = session
+  cookie (mất khi đóng trình duyệt). Mô hình **stateless, một người dùng**: không
+  dùng session ID hay store phía server (không mất trạng thái khi restart).
 - CSRF double-submit token cho mọi request đổi trạng thái.
 - Rate-limit đăng nhập theo IP (cấu hình được).
 - Validate tên phiên (`validateName`) chống command injection; mọi lệnh tmux
@@ -133,3 +138,64 @@ Tầng dữ liệu / tiện ích
 
 Chi tiết quyết định thiết kế: xem [DESIGN.md](./DESIGN.md).
 Bản đồ mã nguồn: xem [CODEMAP.md](./CODEMAP.md).
+
+## 5. Hub đa node (định hướng — chưa triển khai)
+
+> Mô hình mở rộng để quản lý **nhiều instance TCC/WTCC** từ một điểm tập trung.
+> Đây là kiến trúc dự kiến (xem mốc tương ứng trong [ROADMAP.md](./ROADMAP.md)),
+> ghi lại để định hướng thiết kế; chưa có mã nguồn.
+
+### 5.1. Vấn đề
+
+Mỗi máy chủ hiện chạy một instance TCC (Linux) hoặc WTCC (Windows) độc lập, mỗi
+cái một địa chỉ/cổng riêng. Khi số máy tăng, người dùng phải nhớ và mở từng URL,
+đăng nhập riêng từng nơi, không có cái nhìn tổng thể.
+
+### 5.2. Thành phần
+
+```
+                    ┌─────────────────────────────┐
+   Trình duyệt ───► │   TCC-Hub (node trung tâm)   │
+                    │  - Dashboard tổng (mọi node) │
+                    │  - SSO (đăng nhập 1 lần)      │
+                    │  - Node registry + heartbeat │
+                    │  - Reverse proxy HTTP/WS      │
+                    └──────────────┬──────────────┘
+                       tunnel/VPN  │  (mỗi node tự dial ra hub)
+            ┌──────────────────────┼──────────────────────┐
+            ▼                      ▼                      ▼
+     ┌────────────┐        ┌────────────┐        ┌────────────┐
+     │ TCC (Linux)│        │ TCC (Linux)│        │ WTCC (Win) │
+     │  + tmux    │        │  + tmux    │        │  + ConPTY  │
+     └────────────┘        └────────────┘        └────────────┘
+```
+
+- **TCC-Hub**: dịch vụ trung tâm. Giữ **registry** các node (id, tên, nền tảng
+  Linux/Windows, địa chỉ, trạng thái online/offline qua **heartbeat**). Phục vụ
+  **dashboard tổng** liệt kê phiên của mọi node, và **reverse-proxy** lưu lượng
+  HTTP/WebSocket tới node mà người dùng chọn. Quản lý **SSO** (đăng nhập một lần ở
+  hub, không cần đăng nhập lại từng node).
+- **Node TCC/WTCC**: instance hiện tại, bổ sung khả năng **đăng ký với hub** và
+  gửi heartbeat. Vẫn chạy độc lập được khi không có hub (không phụ thuộc cứng).
+
+### 5.3. Kết nối hub ↔ node
+
+Hai hướng, chọn theo môi trường:
+
+- **Reverse tunnel (khuyến nghị khi node sau NAT/firewall)**: node **chủ động
+  dial ra** hub (outbound), mở một kênh điều khiển bền (WebSocket/gRPC). Hub đẩy
+  yêu cầu qua kênh này → không cần mở cổng vào ở phía node, vượt NAT tự nhiên.
+- **Direct / VPN (khi mạng phẳng, vd Tailscale/WireGuard)**: hub gọi thẳng tới
+  địa chỉ node trong mạng riêng. Đơn giản hơn nhưng cần node có địa chỉ hub tới được.
+
+### 5.4. Bảo mật & ranh giới
+
+- Mỗi node xác thực với hub bằng **token/khoá riêng** (per-node secret), không
+  dùng chung mật khẩu người dùng.
+- Hub là điểm vào **single sign-on**; uỷ quyền tới node bằng token ngắn hạn do hub
+  cấp, không lộ secret của node ra client.
+- Giữ nguyên ranh giới bảo mật hiện có ở mỗi node (validate tên phiên, shell
+  allowlist, lệnh qua `execFile`). Hub **không** bỏ qua các lớp này.
+- Tách phần phụ thuộc HĐH (tmux vs ConPTY) sau interface ở mỗi node; hub chỉ làm
+  việc với **giao thức chung** (danh sách phiên, attach, resize...), không phụ
+  thuộc chi tiết nền tảng từng node.

@@ -20,6 +20,12 @@ describe('config DEFAULTS', () => {
     assert.strictEqual(DEFAULTS.theme, 'dark');
   });
 
+  it('sessionMaxAgeHours mac dinh la so nguyen trong 0..8760', () => {
+    assert.strictEqual(typeof DEFAULTS.sessionMaxAgeHours, 'number');
+    assert.ok(Number.isInteger(DEFAULTS.sessionMaxAgeHours));
+    assert.ok(DEFAULTS.sessionMaxAgeHours >= 0 && DEFAULTS.sessionMaxAgeHours <= 8760);
+  });
+
   it('language mac dinh la en', () => {
     assert.strictEqual(DEFAULTS.language, 'en');
   });

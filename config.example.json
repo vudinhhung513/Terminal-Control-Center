@@ -4,6 +4,7 @@
   "authEnabled": false,
   "password": "",
   "sessionSecret": "REPLACE_WITH_RANDOM_SECRET",
+  "sessionMaxAgeHours": 720,
   "shell": "bash",
   "shells": ["bash", "zsh", "sh", "fish"],
   "theme": "dark",

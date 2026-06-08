@@ -54,3 +54,14 @@ gắn với **tmux** (`src/tmux.js`) và `node-pty`.
 - Phân quyền nhiều tài khoản, vai trò.
 - Cân nhắc chuyển lưu trữ metadata sang SQLite (qua interface `meta-store.js`)
   nếu nhu cầu truy vấn/đồng thời tăng.
+
+## v3.0.0 — Hub đa node (tầm nhìn)
+- **TCC-Hub**: node trung tâm quản lý **nhiều instance TCC (Linux) và WTCC
+  (Windows)** từ một điểm: dashboard tổng (mọi node), SSO (đăng nhập một lần),
+  node registry + heartbeat, reverse-proxy HTTP/WebSocket tới từng node.
+- Node tự **đăng ký với hub** và giữ kênh điều khiển: reverse tunnel (node dial
+  ra hub, vượt NAT) hoặc direct/VPN (Tailscale/WireGuard). Node vẫn chạy độc lập
+  được khi không có hub.
+- Mỗi node xác thực với hub bằng **token/khoá riêng**; hub uỷ quyền tới node bằng
+  token ngắn hạn, giữ nguyên ranh giới bảo mật hiện có ở mỗi node.
+- Kiến trúc cơ bản: xem mục **"Hub đa node"** trong [ARCHITECTURE.md](./ARCHITECTURE.md).

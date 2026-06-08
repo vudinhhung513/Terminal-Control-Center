@@ -436,6 +436,7 @@
       .then(function (cfg) {
         document.getElementById('set-auth-enabled').checked = cfg.authEnabled;
         document.getElementById('set-password').value = '';
+        document.getElementById('set-session-maxage').value = (cfg.sessionMaxAgeHours !== undefined ? cfg.sessionMaxAgeHours : 720);
         document.getElementById('set-host').value = cfg.host;
         document.getElementById('set-port').value = cfg.port;
         document.getElementById('set-font-family').value = cfg.termFontFamily;
@@ -468,6 +469,7 @@
 
     var payload = {
       authEnabled: document.getElementById('set-auth-enabled').checked,
+      sessionMaxAgeHours: Number(document.getElementById('set-session-maxage').value),
       host: document.getElementById('set-host').value.trim(),
       port: Number(document.getElementById('set-port').value),
       termFontFamily: document.getElementById('set-font-family').value.trim(),
