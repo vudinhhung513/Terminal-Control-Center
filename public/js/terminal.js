@@ -350,6 +350,27 @@
   // Map phim mui ten -> ky tu cuoi escape sequence (dung khi co modifier)
   var ARROW_FINAL = { up: 'A', down: 'B', right: 'C', left: 'D' };
 
+  // Map phim KHONG sinh ky tu (Non-character keys) theo ten e.key cua DOM ->
+  // chuoi escape gui thang vao terminal. Dung cho o nhap lieu khi o RONG: moi
+  // phim dieu huong/dieu khien deu duoc gui thang thay vi chi Enter/Backspace/
+  // Delete. Tab xu ly Shift+Tab rieng (\x1b[Z) o noi goi.
+  var NAV_KEY_MAP = {
+    Enter: '\r',
+    Backspace: '\x7f', // DEL: backspace chuan terminal
+    Delete: '\x1b[3~',
+    Tab: '\t',
+    Escape: '\x1b',
+    ArrowUp: '\x1b[A',
+    ArrowDown: '\x1b[B',
+    ArrowRight: '\x1b[C',
+    ArrowLeft: '\x1b[D',
+    Home: '\x1b[H',
+    End: '\x1b[F',
+    PageUp: '\x1b[5~',
+    PageDown: '\x1b[6~',
+    Insert: '\x1b[2~'
+  };
+
   /**
    * Dung chuoi escape cho phim dac biet (Tab/ESC/Enter/mui ten) co kem phim bo
    * tro Ctrl/Shift dang cho. Theo chuan xterm modifier m = 1 + shift + ctrl*4:
@@ -518,11 +539,12 @@
     });
   }
 
-  // Khi o nhap RONG: cac phim dieu huong/dieu khien duoc gui THANG vao terminal
-  // (Enter chay lenh, Backspace xoa lui, Delete xoa toi) thay vi chi soan trong
-  // o. Khi o CO text thi giu nguyen hanh vi soan thao binh thuong (Enter -> submit
-  // chen text, Backspace/Delete sua noi dung o). Cung ho tro phim bo tro dinh
-  // (Ctrl) cho ky tu don khi o rong (vd bam Ctrl roi 'c' -> ^C).
+  // Khi o nhap RONG: MOI phim khong sinh ky tu (Non-character keys: Enter,
+  // Backspace, Delete, Tab, ESC, mui ten, Home/End, PageUp/Down, Insert) duoc
+  // gui THANG vao terminal qua NAV_KEY_MAP thay vi chi soan trong o. Khi o CO
+  // text thi giu nguyen hanh vi soan thao binh thuong (Enter -> submit chen
+  // text, Backspace/Delete sua noi dung o). Cung ho tro phim bo tro dinh (Ctrl)
+  // cho ky tu don khi o rong (vd bam Ctrl roi 'c' -> ^C).
   if (inputBarField) {
     inputBarField.addEventListener('keydown', function (e) {
       var empty = inputBarField.value === '';
@@ -537,16 +559,16 @@
 
       if (!empty) return;
 
-      if (e.key === 'Enter') {
-        e.preventDefault(); // chan submit (von khong gui gi khi rong)
-        sendInput(KEY_MAP.enter);
+      // Phim KHONG sinh ky tu (Non-character keys): gui thang escape sequence
+      // vao terminal. Shift+Tab -> \x1b[Z (back-tab chuan), con lai theo map.
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        sendInput(e.shiftKey ? '\x1b[Z' : '\t');
         clearModifiers();
-      } else if (e.key === 'Backspace') {
+      } else if (Object.prototype.hasOwnProperty.call(NAV_KEY_MAP, e.key)) {
         e.preventDefault();
-        sendInput('\x7f'); // DEL: backspace chuan terminal
-      } else if (e.key === 'Delete') {
-        e.preventDefault();
-        sendInput('\x1b[3~'); // escape sequence phim Delete
+        sendInput(NAV_KEY_MAP[e.key]);
+        clearModifiers();
       }
     });
   }
